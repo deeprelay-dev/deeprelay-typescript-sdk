@@ -21,6 +21,7 @@ docs/ImagesResponse.md
 docs/ImagesResponseDataInner.md
 docs/ImagesResponseUsage.md
 docs/InferenceApi.md
+docs/InferencePreflight.md
 docs/ListDeposits200Response.md
 docs/MetaApi.md
 docs/Model.md
@@ -39,7 +40,11 @@ docs/Problem.md
 docs/SpendingLimit.md
 docs/StreamOptions.md
 docs/Subscription.md
+docs/SubscriptionCheckoutRequest.md
+docs/SubscriptionCheckoutSession.md
 docs/SubscriptionPlan.md
+docs/SubscriptionPortalRequest.md
+docs/SubscriptionPortalSession.md
 docs/SubscriptionPrice.md
 docs/SubscriptionQuota.md
 docs/SubscriptionUsage.md
@@ -81,6 +86,7 @@ src/models/ImagesGenerationsRequest.ts
 src/models/ImagesResponse.ts
 src/models/ImagesResponseDataInner.ts
 src/models/ImagesResponseUsage.ts
+src/models/InferencePreflight.ts
 src/models/ListDeposits200Response.ts
 src/models/Model.ts
 src/models/ModelList.ts
@@ -97,7 +103,11 @@ src/models/Problem.ts
 src/models/SpendingLimit.ts
 src/models/StreamOptions.ts
 src/models/Subscription.ts
+src/models/SubscriptionCheckoutRequest.ts
+src/models/SubscriptionCheckoutSession.ts
 src/models/SubscriptionPlan.ts
+src/models/SubscriptionPortalRequest.ts
+src/models/SubscriptionPortalSession.ts
 src/models/SubscriptionPrice.ts
 src/models/SubscriptionQuota.ts
 src/models/SubscriptionUsage.ts

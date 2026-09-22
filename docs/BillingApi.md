@@ -5,6 +5,8 @@ All URIs are relative to *https://api.deeprelay.ai/v1*
 | Method | HTTP request | Description |
 |------------- | ------------- | -------------|
 | [**createCryptoDeposit**](BillingApi.md#createcryptodepositoperation) | **POST** /billing/deposits/crypto | Create a stablecoin deposit |
+| [**createSubscriptionCheckout**](BillingApi.md#createsubscriptioncheckout) | **POST** /billing/subscription/checkout | Start a subscription checkout session |
+| [**createSubscriptionPortal**](BillingApi.md#createsubscriptionportal) | **POST** /billing/subscription/portal | Open the billing portal to cancel or manage the subscription |
 | [**getBalance**](BillingApi.md#getbalance) | **GET** /billing/balance | Get the org credit balance |
 | [**getDeposit**](BillingApi.md#getdeposit) | **GET** /billing/deposits/{id} | Get one stablecoin deposit |
 | [**getSpendingLimit**](BillingApi.md#getspendinglimit) | **GET** /billing/spending-limit | Get the org spending limit |
@@ -86,6 +88,158 @@ example().catch(console.error);
 | **404** | Error response (RFC 7807) |  -  |
 | **429** | Rate limit exceeded (RFC 7807). Retry-After header indicates seconds to wait. |  * Retry-After - Seconds the client should wait before retrying. <br>  |
 | **503** | &#x60;payment-source-unavailable&#x60; — deposits are temporarily unavailable; retry shortly. |  -  |
+| **0** | Error response (RFC 7807) |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## createSubscriptionCheckout
+
+> SubscriptionCheckoutSession createSubscriptionCheckout(subscriptionCheckoutRequest)
+
+Start a subscription checkout session
+
+Opens a hosted checkout session for the flat tier and returns its URL. Requires the &#x60;billing:write&#x60; scope AND organization-admin privileges — subscribing spends organization money.  This endpoint does NOT subscribe anyone. Checkout is a hosted page that needs a browser and a card, so the caller\&#39;s job is to put the returned URL in front of a human. The subscription becomes active when payment completes, which is not synchronous with this call: poll &#x60;/billing/subscription&#x60; to confirm.  &#x60;success_url&#x60; and &#x60;cancel_url&#x60; are optional and fall back to the deployment\&#39;s configured redirects, which is what lets a command-line client start a purchase without having any URLs of its own. An empty request body is valid and means \&quot;use every default\&quot;.  &#x60;plan_key&#x60;, when sent, pins the plan the client DISPLAYED: an unknown key is a 400 rather than a silent purchase of a different tier. Today there is one tier, so the only accepted value is its key — but sending it is the forward-compatible choice.  One flat tier means at most one subscription per organization: a second checkout while an entitling subscription exists is a 409. 
+
+### Example
+
+```ts
+import {
+  Configuration,
+  BillingApi,
+} from '@deeprelay/sdk';
+import type { CreateSubscriptionCheckoutRequest } from '@deeprelay/sdk';
+
+async function example() {
+  console.log("🚀 Testing @deeprelay/sdk SDK...");
+  const config = new Configuration({ 
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new BillingApi(config);
+
+  const body = {
+    // SubscriptionCheckoutRequest (optional)
+    subscriptionCheckoutRequest: ...,
+  } satisfies CreateSubscriptionCheckoutRequest;
+
+  try {
+    const data = await api.createSubscriptionCheckout(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **subscriptionCheckoutRequest** | [SubscriptionCheckoutRequest](SubscriptionCheckoutRequest.md) |  | [Optional] |
+
+### Return type
+
+[**SubscriptionCheckoutSession**](SubscriptionCheckoutSession.md)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`, `application/problem+json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | OK |  -  |
+| **403** | Not an organization admin |  -  |
+| **409** | The organization already has an active subscription |  -  |
+| **503** | Subscription billing is not configured on this deployment |  -  |
+| **429** | Rate limit exceeded (RFC 7807). Retry-After header indicates seconds to wait. |  * Retry-After - Seconds the client should wait before retrying. <br>  |
+| **0** | Error response (RFC 7807) |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## createSubscriptionPortal
+
+> SubscriptionPortalSession createSubscriptionPortal(subscriptionPortalRequest)
+
+Open the billing portal to cancel or manage the subscription
+
+Returns a URL for the hosted billing portal: where a customer cancels the subscription, resumes one they cancelled, changes payment method, or downloads invoices. Requires the &#x60;billing:write&#x60; scope AND organization-admin privileges.  Cancellation lives here rather than on its own endpoint because it is one surface with the rest of the billing lifecycle. The common reason a subscription is about to lapse is a declined card, and the fix for that is a new card, not a cancellation — sending a customer somewhere that can only cancel would lose renewals.  Cancelling in the portal ends the subscription at the close of the current period; coverage continues until then and &#x60;/billing/subscription&#x60; reports &#x60;cancel_at_period_end: true&#x60;.  An organization that has never paid for anything gets 404: there is no billing account to manage, and this endpoint deliberately does not create one as a side effect of looking. 
+
+### Example
+
+```ts
+import {
+  Configuration,
+  BillingApi,
+} from '@deeprelay/sdk';
+import type { CreateSubscriptionPortalRequest } from '@deeprelay/sdk';
+
+async function example() {
+  console.log("🚀 Testing @deeprelay/sdk SDK...");
+  const config = new Configuration({ 
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new BillingApi(config);
+
+  const body = {
+    // SubscriptionPortalRequest (optional)
+    subscriptionPortalRequest: ...,
+  } satisfies CreateSubscriptionPortalRequest;
+
+  try {
+    const data = await api.createSubscriptionPortal(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **subscriptionPortalRequest** | [SubscriptionPortalRequest](SubscriptionPortalRequest.md) |  | [Optional] |
+
+### Return type
+
+[**SubscriptionPortalSession**](SubscriptionPortalSession.md)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`, `application/problem+json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | OK |  -  |
+| **403** | Not an organization admin |  -  |
+| **404** | The organization has no billing account yet |  -  |
+| **503** | Subscription billing is not configured on this deployment |  -  |
+| **429** | Rate limit exceeded (RFC 7807). Retry-After header indicates seconds to wait. |  * Retry-After - Seconds the client should wait before retrying. <br>  |
 | **0** | Error response (RFC 7807) |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)

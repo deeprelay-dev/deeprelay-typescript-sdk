@@ -49,6 +49,26 @@ import {
     SubscriptionToJSON,
 } from '../models/Subscription';
 import {
+    type SubscriptionCheckoutRequest,
+    SubscriptionCheckoutRequestFromJSON,
+    SubscriptionCheckoutRequestToJSON,
+} from '../models/SubscriptionCheckoutRequest';
+import {
+    type SubscriptionCheckoutSession,
+    SubscriptionCheckoutSessionFromJSON,
+    SubscriptionCheckoutSessionToJSON,
+} from '../models/SubscriptionCheckoutSession';
+import {
+    type SubscriptionPortalRequest,
+    SubscriptionPortalRequestFromJSON,
+    SubscriptionPortalRequestToJSON,
+} from '../models/SubscriptionPortalRequest';
+import {
+    type SubscriptionPortalSession,
+    SubscriptionPortalSessionFromJSON,
+    SubscriptionPortalSessionToJSON,
+} from '../models/SubscriptionPortalSession';
+import {
     type UpdateSpendingLimitRequest,
     UpdateSpendingLimitRequestFromJSON,
     UpdateSpendingLimitRequestToJSON,
@@ -56,6 +76,14 @@ import {
 
 export interface CreateCryptoDepositOperationRequest {
     createCryptoDepositRequest: CreateCryptoDepositRequest;
+}
+
+export interface CreateSubscriptionCheckoutRequest {
+    subscriptionCheckoutRequest?: SubscriptionCheckoutRequest;
+}
+
+export interface CreateSubscriptionPortalRequest {
+    subscriptionPortalRequest?: SubscriptionPortalRequest;
 }
 
 export interface GetDepositRequest {
@@ -125,6 +153,106 @@ export class BillingApi extends runtime.BaseAPI {
      */
     async createCryptoDeposit(requestParameters: CreateCryptoDepositOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CryptoDeposit> {
         const response = await this.createCryptoDepositRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Creates request options for createSubscriptionCheckout without sending the request
+     */
+    async createSubscriptionCheckoutRequestOpts(requestParameters: CreateSubscriptionCheckoutRequest): Promise<runtime.RequestOpts> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/billing/subscription/checkout`;
+
+        return {
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: SubscriptionCheckoutRequestToJSON(requestParameters['subscriptionCheckoutRequest']),
+        };
+    }
+
+    /**
+     * Opens a hosted checkout session for the flat tier and returns its URL. Requires the `billing:write` scope AND organization-admin privileges — subscribing spends organization money.  This endpoint does NOT subscribe anyone. Checkout is a hosted page that needs a browser and a card, so the caller\'s job is to put the returned URL in front of a human. The subscription becomes active when payment completes, which is not synchronous with this call: poll `/billing/subscription` to confirm.  `success_url` and `cancel_url` are optional and fall back to the deployment\'s configured redirects, which is what lets a command-line client start a purchase without having any URLs of its own. An empty request body is valid and means \"use every default\".  `plan_key`, when sent, pins the plan the client DISPLAYED: an unknown key is a 400 rather than a silent purchase of a different tier. Today there is one tier, so the only accepted value is its key — but sending it is the forward-compatible choice.  One flat tier means at most one subscription per organization: a second checkout while an entitling subscription exists is a 409. 
+     * Start a subscription checkout session
+     */
+    async createSubscriptionCheckoutRaw(requestParameters: CreateSubscriptionCheckoutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SubscriptionCheckoutSession>> {
+        const requestOptions = await this.createSubscriptionCheckoutRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => SubscriptionCheckoutSessionFromJSON(jsonValue));
+    }
+
+    /**
+     * Opens a hosted checkout session for the flat tier and returns its URL. Requires the `billing:write` scope AND organization-admin privileges — subscribing spends organization money.  This endpoint does NOT subscribe anyone. Checkout is a hosted page that needs a browser and a card, so the caller\'s job is to put the returned URL in front of a human. The subscription becomes active when payment completes, which is not synchronous with this call: poll `/billing/subscription` to confirm.  `success_url` and `cancel_url` are optional and fall back to the deployment\'s configured redirects, which is what lets a command-line client start a purchase without having any URLs of its own. An empty request body is valid and means \"use every default\".  `plan_key`, when sent, pins the plan the client DISPLAYED: an unknown key is a 400 rather than a silent purchase of a different tier. Today there is one tier, so the only accepted value is its key — but sending it is the forward-compatible choice.  One flat tier means at most one subscription per organization: a second checkout while an entitling subscription exists is a 409. 
+     * Start a subscription checkout session
+     */
+    async createSubscriptionCheckout(requestParameters: CreateSubscriptionCheckoutRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SubscriptionCheckoutSession> {
+        const response = await this.createSubscriptionCheckoutRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Creates request options for createSubscriptionPortal without sending the request
+     */
+    async createSubscriptionPortalRequestOpts(requestParameters: CreateSubscriptionPortalRequest): Promise<runtime.RequestOpts> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/billing/subscription/portal`;
+
+        return {
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: SubscriptionPortalRequestToJSON(requestParameters['subscriptionPortalRequest']),
+        };
+    }
+
+    /**
+     * Returns a URL for the hosted billing portal: where a customer cancels the subscription, resumes one they cancelled, changes payment method, or downloads invoices. Requires the `billing:write` scope AND organization-admin privileges.  Cancellation lives here rather than on its own endpoint because it is one surface with the rest of the billing lifecycle. The common reason a subscription is about to lapse is a declined card, and the fix for that is a new card, not a cancellation — sending a customer somewhere that can only cancel would lose renewals.  Cancelling in the portal ends the subscription at the close of the current period; coverage continues until then and `/billing/subscription` reports `cancel_at_period_end: true`.  An organization that has never paid for anything gets 404: there is no billing account to manage, and this endpoint deliberately does not create one as a side effect of looking. 
+     * Open the billing portal to cancel or manage the subscription
+     */
+    async createSubscriptionPortalRaw(requestParameters: CreateSubscriptionPortalRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SubscriptionPortalSession>> {
+        const requestOptions = await this.createSubscriptionPortalRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => SubscriptionPortalSessionFromJSON(jsonValue));
+    }
+
+    /**
+     * Returns a URL for the hosted billing portal: where a customer cancels the subscription, resumes one they cancelled, changes payment method, or downloads invoices. Requires the `billing:write` scope AND organization-admin privileges.  Cancellation lives here rather than on its own endpoint because it is one surface with the rest of the billing lifecycle. The common reason a subscription is about to lapse is a declined card, and the fix for that is a new card, not a cancellation — sending a customer somewhere that can only cancel would lose renewals.  Cancelling in the portal ends the subscription at the close of the current period; coverage continues until then and `/billing/subscription` reports `cancel_at_period_end: true`.  An organization that has never paid for anything gets 404: there is no billing account to manage, and this endpoint deliberately does not create one as a side effect of looking. 
+     * Open the billing portal to cancel or manage the subscription
+     */
+    async createSubscriptionPortal(requestParameters: CreateSubscriptionPortalRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SubscriptionPortalSession> {
+        const response = await this.createSubscriptionPortalRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

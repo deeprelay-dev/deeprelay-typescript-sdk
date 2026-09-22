@@ -12,6 +12,7 @@ All URIs are relative to *https://api.deeprelay.ai/v1*
 | [**getModel**](InferenceApi.md#getmodel) | **GET** /models/{id} | Get a specific model (OpenAI-compatible) |
 | [**getVideo**](InferenceApi.md#getvideo) | **GET** /videos/{id} | Get a video generation job |
 | [**getVideoContent**](InferenceApi.md#getvideocontent) | **GET** /videos/{id}/content | Download a completed video artifact |
+| [**inferencePreflight**](InferenceApi.md#inferencepreflight) | **GET** /inference/preflight | Check whether a model request would be served, and at whose expense |
 | [**listModels**](InferenceApi.md#listmodels) | **GET** /models | List available models (OpenAI-compatible) |
 | [**listVideos**](InferenceApi.md#listvideos) | **GET** /videos | List video generation jobs |
 
@@ -633,6 +634,79 @@ example().catch(console.error);
 | **403** | API key lacks the required scope (OpenAI error envelope). |  -  |
 | **404** | Model or resource not found (OpenAI error envelope). |  -  |
 | **410** | The requested artifact has expired and is no longer available (OpenAI error envelope). |  -  |
+| **429** | Rate limit exceeded (OpenAI error envelope). Retry-After header indicates seconds to wait. |  * Retry-After - Seconds the client should wait before retrying. <br>  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## inferencePreflight
+
+> InferencePreflight inferencePreflight(model)
+
+Check whether a model request would be served, and at whose expense
+
+Answers \&quot;what happens if I call this model right now?\&quot; before the call is made: whether the plan covers the model, whether the organization is subscribed, and whether there is credit to pay if it is not covered. Requires the &#x60;serverless:read&#x60; scope.  Nothing is sent, counted, charged, or reserved. The verdict is computed from the state of the SAME gates that judge the real request — plan coverage, subscription entitlement, remaining plan quota, credit balance and self-set spending caps — so the advice cannot drift from enforcement. It is deliberately NOT a dry run: no per-request cost estimate is quoted, because that figure changes with every prompt and quoting it would invite clients to cache it.  The gates consulted depend on the model\&#39;s MODALITY, because the endpoints do not all meet the same ones. Chat, embeddings and image requests meet the full gate (balance, then the organization\&#39;s opt-in daily cap, then its monthly cap). Video creation meets only the balance check, so an organization past its own spending cap but holding credit is reported as fundable for video — which is what the video endpoint will in fact do. Predicting the strictest gate rather than the applicable one would make this endpoint refuse requests the API accepts.  The same is true of the plan: video creation does not run the subscription gate, so &#x60;plan_covered&#x60; is false for a video model even if an operator has placed it on the plan\&#39;s covered list. That is a deliberate divergence from the same-named field on &#x60;/v1/models&#x60;, which reports the platform\&#39;s configuration. Here it means \&quot;the plan covers this REQUEST\&quot; — describing what will happen is the entire job of a preflight.  One caveat on \&quot;read-only\&quot;: resolving the balance creates the organization\&#39;s balance row if it has never had one (idempotent, org-scoped, and the same row the first real request would create). Nothing else is written.  The case this exists for is &#x60;warn&#x60; / &#x60;not_plan_covered&#x60;. A subscriber calling a model outside the plan IS served and IS charged pay-as-you-go, and nothing in the response to that request says so — the first signal used to be the invoice.  &#x60;funded&#x60; is a boolean and never a figure. This route is on the inference read scope, so it must not disclose the organization\&#39;s balance; use &#x60;/billing/balance&#x60; for the number.  Failure posture is the opposite of the request gate\&#39;s: any gate that cannot be read degrades the verdict toward &#x60;ok&#x60;, never toward &#x60;block&#x60;. A false &#x60;block&#x60; would stop a customer whose request would have succeeded, while a false &#x60;ok&#x60; costs them one honest error from the real call. 
+
+### Example
+
+```ts
+import {
+  Configuration,
+  InferenceApi,
+} from '@deeprelay/sdk';
+import type { InferencePreflightRequest } from '@deeprelay/sdk';
+
+async function example() {
+  console.log("🚀 Testing @deeprelay/sdk SDK...");
+  const config = new Configuration({ 
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new InferenceApi(config);
+
+  const body = {
+    // string | Model id or alias, optionally with a `:economy` tier suffix. It is resolved through the catalog exactly as the inference endpoints resolve it, so an alias and a tier view answer for the model that would actually serve.
+    model: model_example,
+  } satisfies InferencePreflightRequest;
+
+  try {
+    const data = await api.inferencePreflight(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **model** | `string` | Model id or alias, optionally with a &#x60;:economy&#x60; tier suffix. It is resolved through the catalog exactly as the inference endpoints resolve it, so an alias and a tier view answer for the model that would actually serve. | [Defaults to `undefined`] |
+
+### Return type
+
+[**InferencePreflight**](InferencePreflight.md)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | OK |  -  |
+| **404** | Model or resource not found (OpenAI error envelope). |  -  |
 | **429** | Rate limit exceeded (OpenAI error envelope). Retry-After header indicates seconds to wait. |  * Retry-After - Seconds the client should wait before retrying. <br>  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)

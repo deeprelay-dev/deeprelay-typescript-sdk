@@ -44,6 +44,11 @@ import {
     ImagesResponseToJSON,
 } from '../models/ImagesResponse';
 import {
+    type InferencePreflight,
+    InferencePreflightFromJSON,
+    InferencePreflightToJSON,
+} from '../models/InferencePreflight';
+import {
     type Model,
     ModelFromJSON,
     ModelToJSON,
@@ -106,6 +111,10 @@ export interface GetVideoRequest {
 
 export interface GetVideoContentRequest {
     id: string;
+}
+
+export interface InferencePreflightRequest {
+    model: string;
 }
 
 export interface ListModelsRequest {
@@ -567,6 +576,64 @@ export class InferenceApi extends runtime.BaseAPI {
      */
     async getVideoContent(requestParameters: GetVideoContentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Blob> {
         const response = await this.getVideoContentRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Creates request options for inferencePreflight without sending the request
+     */
+    async inferencePreflightRequestOpts(requestParameters: InferencePreflightRequest): Promise<runtime.RequestOpts> {
+        if (requestParameters['model'] == null) {
+            throw new runtime.RequiredError(
+                'model',
+                'Required parameter "model" was null or undefined when calling inferencePreflight().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['model'] != null) {
+            queryParameters['model'] = requestParameters['model'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/inference/preflight`;
+
+        return {
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        };
+    }
+
+    /**
+     * Answers \"what happens if I call this model right now?\" before the call is made: whether the plan covers the model, whether the organization is subscribed, and whether there is credit to pay if it is not covered. Requires the `serverless:read` scope.  Nothing is sent, counted, charged, or reserved. The verdict is computed from the state of the SAME gates that judge the real request — plan coverage, subscription entitlement, remaining plan quota, credit balance and self-set spending caps — so the advice cannot drift from enforcement. It is deliberately NOT a dry run: no per-request cost estimate is quoted, because that figure changes with every prompt and quoting it would invite clients to cache it.  The gates consulted depend on the model\'s MODALITY, because the endpoints do not all meet the same ones. Chat, embeddings and image requests meet the full gate (balance, then the organization\'s opt-in daily cap, then its monthly cap). Video creation meets only the balance check, so an organization past its own spending cap but holding credit is reported as fundable for video — which is what the video endpoint will in fact do. Predicting the strictest gate rather than the applicable one would make this endpoint refuse requests the API accepts.  The same is true of the plan: video creation does not run the subscription gate, so `plan_covered` is false for a video model even if an operator has placed it on the plan\'s covered list. That is a deliberate divergence from the same-named field on `/v1/models`, which reports the platform\'s configuration. Here it means \"the plan covers this REQUEST\" — describing what will happen is the entire job of a preflight.  One caveat on \"read-only\": resolving the balance creates the organization\'s balance row if it has never had one (idempotent, org-scoped, and the same row the first real request would create). Nothing else is written.  The case this exists for is `warn` / `not_plan_covered`. A subscriber calling a model outside the plan IS served and IS charged pay-as-you-go, and nothing in the response to that request says so — the first signal used to be the invoice.  `funded` is a boolean and never a figure. This route is on the inference read scope, so it must not disclose the organization\'s balance; use `/billing/balance` for the number.  Failure posture is the opposite of the request gate\'s: any gate that cannot be read degrades the verdict toward `ok`, never toward `block`. A false `block` would stop a customer whose request would have succeeded, while a false `ok` costs them one honest error from the real call. 
+     * Check whether a model request would be served, and at whose expense
+     */
+    async inferencePreflightRaw(requestParameters: InferencePreflightRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<InferencePreflight>> {
+        const requestOptions = await this.inferencePreflightRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => InferencePreflightFromJSON(jsonValue));
+    }
+
+    /**
+     * Answers \"what happens if I call this model right now?\" before the call is made: whether the plan covers the model, whether the organization is subscribed, and whether there is credit to pay if it is not covered. Requires the `serverless:read` scope.  Nothing is sent, counted, charged, or reserved. The verdict is computed from the state of the SAME gates that judge the real request — plan coverage, subscription entitlement, remaining plan quota, credit balance and self-set spending caps — so the advice cannot drift from enforcement. It is deliberately NOT a dry run: no per-request cost estimate is quoted, because that figure changes with every prompt and quoting it would invite clients to cache it.  The gates consulted depend on the model\'s MODALITY, because the endpoints do not all meet the same ones. Chat, embeddings and image requests meet the full gate (balance, then the organization\'s opt-in daily cap, then its monthly cap). Video creation meets only the balance check, so an organization past its own spending cap but holding credit is reported as fundable for video — which is what the video endpoint will in fact do. Predicting the strictest gate rather than the applicable one would make this endpoint refuse requests the API accepts.  The same is true of the plan: video creation does not run the subscription gate, so `plan_covered` is false for a video model even if an operator has placed it on the plan\'s covered list. That is a deliberate divergence from the same-named field on `/v1/models`, which reports the platform\'s configuration. Here it means \"the plan covers this REQUEST\" — describing what will happen is the entire job of a preflight.  One caveat on \"read-only\": resolving the balance creates the organization\'s balance row if it has never had one (idempotent, org-scoped, and the same row the first real request would create). Nothing else is written.  The case this exists for is `warn` / `not_plan_covered`. A subscriber calling a model outside the plan IS served and IS charged pay-as-you-go, and nothing in the response to that request says so — the first signal used to be the invoice.  `funded` is a boolean and never a figure. This route is on the inference read scope, so it must not disclose the organization\'s balance; use `/billing/balance` for the number.  Failure posture is the opposite of the request gate\'s: any gate that cannot be read degrades the verdict toward `ok`, never toward `block`. A false `block` would stop a customer whose request would have succeeded, while a false `ok` costs them one honest error from the real call. 
+     * Check whether a model request would be served, and at whose expense
+     */
+    async inferencePreflight(requestParameters: InferencePreflightRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<InferencePreflight> {
+        const response = await this.inferencePreflightRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
