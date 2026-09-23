@@ -32,6 +32,8 @@ export * from './OperationError';
 export * from './OperationResult';
 export * from './PeakWindow';
 export * from './Problem';
+export * from './RefereeStatus';
+export * from './Referral';
 export * from './SpendingLimit';
 export * from './StreamOptions';
 export * from './Subscription';

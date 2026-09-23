@@ -9,6 +9,7 @@ All URIs are relative to *https://api.deeprelay.ai/v1*
 | [**createSubscriptionPortal**](BillingApi.md#createsubscriptionportal) | **POST** /billing/subscription/portal | Open the billing portal to cancel or manage the subscription |
 | [**getBalance**](BillingApi.md#getbalance) | **GET** /billing/balance | Get the org credit balance |
 | [**getDeposit**](BillingApi.md#getdeposit) | **GET** /billing/deposits/{id} | Get one stablecoin deposit |
+| [**getReferral**](BillingApi.md#getreferral) | **GET** /referrals | Get the org referral code, invite link, terms and stats |
 | [**getSpendingLimit**](BillingApi.md#getspendinglimit) | **GET** /billing/spending-limit | Get the org spending limit |
 | [**getSubscription**](BillingApi.md#getsubscription) | **GET** /billing/subscription | Get the org subscription status and quota usage |
 | [**listDeposits**](BillingApi.md#listdeposits) | **GET** /billing/deposits | List stablecoin deposits |
@@ -378,6 +379,71 @@ example().catch(console.error);
 |-------------|-------------|------------------|
 | **200** | OK |  -  |
 | **404** | &#x60;deposit-not-found&#x60; — no such deposit, or it belongs to another organization. &#x60;not-found&#x60; — the feature is not enabled.  |  -  |
+| **429** | Rate limit exceeded (RFC 7807). Retry-After header indicates seconds to wait. |  * Retry-After - Seconds the client should wait before retrying. <br>  |
+| **0** | Error response (RFC 7807) |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## getReferral
+
+> Referral getReferral()
+
+Get the org referral code, invite link, terms and stats
+
+Returns the organization\&#39;s shareable referral code and invite link (minting the code on first read), the program terms, the referrer\&#39;s stats, and — when this organization itself signed up through someone else\&#39;s link — its own progress toward the referee reward. Requires the &#x60;billing:read&#x60; scope. The organization is taken from the authenticated API key, never from a parameter.  The program: share the invite link; when a friend signs up through it and spends &#x60;qualify_spend_cents&#x60; on inference, the referrer receives &#x60;reward_cents&#x60; and the friend receives &#x60;referee_reward_cents&#x60;, both as non-withdrawable credit, after a &#x60;hold_days&#x60; chargeback hold. The terms ride on the wire so a client never hard-codes the amounts.  &#x60;referred&#x60; is ABSENT (not null) for an organization nobody referred — key on its presence. This is the same contract the dashboard\&#39;s referral card reads. 
+
+### Example
+
+```ts
+import {
+  Configuration,
+  BillingApi,
+} from '@deeprelay/sdk';
+import type { GetReferralRequest } from '@deeprelay/sdk';
+
+async function example() {
+  console.log("🚀 Testing @deeprelay/sdk SDK...");
+  const config = new Configuration({ 
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new BillingApi(config);
+
+  try {
+    const data = await api.getReferral();
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+[**Referral**](Referral.md)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`, `application/problem+json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | OK |  -  |
 | **429** | Rate limit exceeded (RFC 7807). Retry-After header indicates seconds to wait. |  * Retry-After - Seconds the client should wait before retrying. <br>  |
 | **0** | Error response (RFC 7807) |  -  |
 

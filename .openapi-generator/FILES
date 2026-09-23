@@ -37,6 +37,8 @@ docs/OperationResult.md
 docs/OperationsApi.md
 docs/PeakWindow.md
 docs/Problem.md
+docs/RefereeStatus.md
+docs/Referral.md
 docs/SpendingLimit.md
 docs/StreamOptions.md
 docs/Subscription.md
@@ -100,6 +102,8 @@ src/models/OperationError.ts
 src/models/OperationResult.ts
 src/models/PeakWindow.ts
 src/models/Problem.ts
+src/models/RefereeStatus.ts
+src/models/Referral.ts
 src/models/SpendingLimit.ts
 src/models/StreamOptions.ts
 src/models/Subscription.ts

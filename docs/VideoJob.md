@@ -17,6 +17,7 @@ Name | Type
 `completedAt` | number
 `expiresAt` | number
 `error` | string
+`errorMessage` | string
 `costCents` | number
 
 ## Example
@@ -37,6 +38,7 @@ const example = {
   "completedAt": null,
   "expiresAt": null,
   "error": null,
+  "errorMessage": null,
   "costCents": null,
 } satisfies VideoJob
 

@@ -86,6 +86,12 @@ export interface VideoJob {
      */
     error?: string;
     /**
+     * Human-readable reason behind `error`, when the upstream supplied one. `error` classifies the failure, `error_message` explains it (for example a requested duration outside the model's supported range). Sanitized before storage; only ever present alongside `error`.
+     * @type {string}
+     * @memberof VideoJob
+     */
+    errorMessage?: string;
+    /**
      * Final billed cost in cents; present once the job completes (failed/cancelled jobs are never billed).
      * @type {number}
      * @memberof VideoJob
@@ -152,6 +158,7 @@ export function VideoJobFromJSONTyped(json: any, ignoreDiscriminator: boolean): 
         'completedAt': json['completed_at'] == null ? undefined : json['completed_at'],
         'expiresAt': json['expires_at'] == null ? undefined : json['expires_at'],
         'error': json['error'] == null ? undefined : json['error'],
+        'errorMessage': json['error_message'] == null ? undefined : json['error_message'],
         'costCents': json['cost_cents'] == null ? undefined : json['cost_cents'],
     };
 }
@@ -178,6 +185,7 @@ export function VideoJobToJSONTyped(value?: VideoJob | null, ignoreDiscriminator
         'completed_at': value['completedAt'],
         'expires_at': value['expiresAt'],
         'error': value['error'],
+        'error_message': value['errorMessage'],
         'cost_cents': value['costCents'],
     };
 }

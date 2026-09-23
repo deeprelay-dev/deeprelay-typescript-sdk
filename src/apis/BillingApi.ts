@@ -39,6 +39,11 @@ import {
     ProblemToJSON,
 } from '../models/Problem';
 import {
+    type Referral,
+    ReferralFromJSON,
+    ReferralToJSON,
+} from '../models/Referral';
+import {
     type SpendingLimit,
     SpendingLimitFromJSON,
     SpendingLimitToJSON,
@@ -355,6 +360,53 @@ export class BillingApi extends runtime.BaseAPI {
      */
     async getDeposit(requestParameters: GetDepositRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CryptoDeposit> {
         const response = await this.getDepositRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Creates request options for getReferral without sending the request
+     */
+    async getReferralRequestOpts(): Promise<runtime.RequestOpts> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/referrals`;
+
+        return {
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        };
+    }
+
+    /**
+     * Returns the organization\'s shareable referral code and invite link (minting the code on first read), the program terms, the referrer\'s stats, and — when this organization itself signed up through someone else\'s link — its own progress toward the referee reward. Requires the `billing:read` scope. The organization is taken from the authenticated API key, never from a parameter.  The program: share the invite link; when a friend signs up through it and spends `qualify_spend_cents` on inference, the referrer receives `reward_cents` and the friend receives `referee_reward_cents`, both as non-withdrawable credit, after a `hold_days` chargeback hold. The terms ride on the wire so a client never hard-codes the amounts.  `referred` is ABSENT (not null) for an organization nobody referred — key on its presence. This is the same contract the dashboard\'s referral card reads. 
+     * Get the org referral code, invite link, terms and stats
+     */
+    async getReferralRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Referral>> {
+        const requestOptions = await this.getReferralRequestOpts();
+        const response = await this.request(requestOptions, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ReferralFromJSON(jsonValue));
+    }
+
+    /**
+     * Returns the organization\'s shareable referral code and invite link (minting the code on first read), the program terms, the referrer\'s stats, and — when this organization itself signed up through someone else\'s link — its own progress toward the referee reward. Requires the `billing:read` scope. The organization is taken from the authenticated API key, never from a parameter.  The program: share the invite link; when a friend signs up through it and spends `qualify_spend_cents` on inference, the referrer receives `reward_cents` and the friend receives `referee_reward_cents`, both as non-withdrawable credit, after a `hold_days` chargeback hold. The terms ride on the wire so a client never hard-codes the amounts.  `referred` is ABSENT (not null) for an organization nobody referred — key on its presence. This is the same contract the dashboard\'s referral card reads. 
+     * Get the org referral code, invite link, terms and stats
+     */
+    async getReferral(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Referral> {
+        const response = await this.getReferralRaw(initOverrides);
         return await response.value();
     }
 
