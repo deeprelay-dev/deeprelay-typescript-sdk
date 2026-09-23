@@ -31,10 +31,6 @@ docs/ModelPricing.md
 docs/ModelRate.md
 docs/OpenAIErrorEnvelope.md
 docs/OpenAIErrorEnvelopeError.md
-docs/Operation.md
-docs/OperationError.md
-docs/OperationResult.md
-docs/OperationsApi.md
 docs/PeakWindow.md
 docs/Problem.md
 docs/RefereeStatus.md
@@ -65,7 +61,6 @@ package.json
 src/apis/BillingApi.ts
 src/apis/InferenceApi.ts
 src/apis/MetaApi.ts
-src/apis/OperationsApi.ts
 src/apis/UsageApi.ts
 src/apis/WebhooksApi.ts
 src/apis/index.ts
@@ -97,9 +92,6 @@ src/models/ModelPricing.ts
 src/models/ModelRate.ts
 src/models/OpenAIErrorEnvelope.ts
 src/models/OpenAIErrorEnvelopeError.ts
-src/models/Operation.ts
-src/models/OperationError.ts
-src/models/OperationResult.ts
 src/models/PeakWindow.ts
 src/models/Problem.ts
 src/models/RefereeStatus.ts

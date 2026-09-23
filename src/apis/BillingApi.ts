@@ -262,6 +262,52 @@ export class BillingApi extends runtime.BaseAPI {
     }
 
     /**
+     * Creates request options for deleteSpendingLimit without sending the request
+     */
+    async deleteSpendingLimitRequestOpts(): Promise<runtime.RequestOpts> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/billing/spending-limit`;
+
+        return {
+            path: urlPath,
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        };
+    }
+
+    /**
+     * Removes the organization\'s monthly spending limit and daily spend cap entirely. Requires the `billing:write` scope AND org-admin privileges (a non-admin member gets 403). Returns 404 when no limit is configured. This is the only way to remove a limit through the API, because `PUT` floors `monthly_limit_dollars` at 1.00 and so cannot express \"no limit\". 
+     * Clear the org spending limit
+     */
+    async deleteSpendingLimitRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        const requestOptions = await this.deleteSpendingLimitRequestOpts();
+        const response = await this.request(requestOptions, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Removes the organization\'s monthly spending limit and daily spend cap entirely. Requires the `billing:write` scope AND org-admin privileges (a non-admin member gets 403). Returns 404 when no limit is configured. This is the only way to remove a limit through the API, because `PUT` floors `monthly_limit_dollars` at 1.00 and so cannot express \"no limit\". 
+     * Clear the org spending limit
+     */
+    async deleteSpendingLimit(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteSpendingLimitRaw(initOverrides);
+    }
+
+    /**
      * Creates request options for getBalance without sending the request
      */
     async getBalanceRequestOpts(): Promise<runtime.RequestOpts> {

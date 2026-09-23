@@ -7,6 +7,7 @@ All URIs are relative to *https://api.deeprelay.ai/v1*
 | [**createCryptoDeposit**](BillingApi.md#createcryptodepositoperation) | **POST** /billing/deposits/crypto | Create a stablecoin deposit |
 | [**createSubscriptionCheckout**](BillingApi.md#createsubscriptioncheckout) | **POST** /billing/subscription/checkout | Start a subscription checkout session |
 | [**createSubscriptionPortal**](BillingApi.md#createsubscriptionportal) | **POST** /billing/subscription/portal | Open the billing portal to cancel or manage the subscription |
+| [**deleteSpendingLimit**](BillingApi.md#deletespendinglimit) | **DELETE** /billing/spending-limit | Clear the org spending limit |
 | [**getBalance**](BillingApi.md#getbalance) | **GET** /billing/balance | Get the org credit balance |
 | [**getDeposit**](BillingApi.md#getdeposit) | **GET** /billing/deposits/{id} | Get one stablecoin deposit |
 | [**getReferral**](BillingApi.md#getreferral) | **GET** /referrals | Get the org referral code, invite link, terms and stats |
@@ -240,6 +241,73 @@ example().catch(console.error);
 | **403** | Not an organization admin |  -  |
 | **404** | The organization has no billing account yet |  -  |
 | **503** | Subscription billing is not configured on this deployment |  -  |
+| **429** | Rate limit exceeded (RFC 7807). Retry-After header indicates seconds to wait. |  * Retry-After - Seconds the client should wait before retrying. <br>  |
+| **0** | Error response (RFC 7807) |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## deleteSpendingLimit
+
+> deleteSpendingLimit()
+
+Clear the org spending limit
+
+Removes the organization\&#39;s monthly spending limit and daily spend cap entirely. Requires the &#x60;billing:write&#x60; scope AND org-admin privileges (a non-admin member gets 403). Returns 404 when no limit is configured. This is the only way to remove a limit through the API, because &#x60;PUT&#x60; floors &#x60;monthly_limit_dollars&#x60; at 1.00 and so cannot express \&quot;no limit\&quot;. 
+
+### Example
+
+```ts
+import {
+  Configuration,
+  BillingApi,
+} from '@deeprelay/sdk';
+import type { DeleteSpendingLimitRequest } from '@deeprelay/sdk';
+
+async function example() {
+  console.log("🚀 Testing @deeprelay/sdk SDK...");
+  const config = new Configuration({ 
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new BillingApi(config);
+
+  try {
+    const data = await api.deleteSpendingLimit();
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+`void` (Empty response body)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/problem+json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **204** | No Content |  -  |
+| **403** | Error response (RFC 7807) |  -  |
+| **404** | Error response (RFC 7807) |  -  |
 | **429** | Rate limit exceeded (RFC 7807). Retry-After header indicates seconds to wait. |  * Retry-After - Seconds the client should wait before retrying. <br>  |
 | **0** | Error response (RFC 7807) |  -  |
 
