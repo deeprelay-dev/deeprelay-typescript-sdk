@@ -28,6 +28,7 @@ import {
  */
 export interface UsagePage {
     /**
+     * Inference-usage rows when the request set `modality` or `model`; instance-usage rows otherwise. One page never mixes the two.
      * 
      * @type {Array<UsageBucket>}
      * @memberof UsagePage

@@ -14,41 +14,74 @@
 
 import { mapValues } from '../runtime';
 /**
+ * One `/usage` row. Every row carries `bucket_start`, `gpu_seconds` and `cost_cents`. When the request set `modality` or `model` the row is an inference-usage row: it also carries `modality`, `model`, `prompt_tokens`, `completion_tokens` and `image_count` (aggregating every serverless inference call in the bucket for that modality and model), and `gpu_seconds` is always 0. Otherwise it is an instance-usage row, carrying `instance_id` / `gpu_type` when `group_by` asked for them.
  * 
  * @export
  * @interface UsageBucket
  */
 export interface UsageBucket {
     /**
-     * 
+     * Start of the time bucket (truncated to `bucket`).
      * @type {Date}
      * @memberof UsageBucket
      */
     bucketStart: Date;
     /**
-     * 
+     * Instance-usage rows with `group_by=instance_id` only.
      * @type {string}
      * @memberof UsageBucket
      */
     instanceId?: string;
     /**
-     * 
+     * Instance-usage rows with `group_by=gpu_type` only.
      * @type {string}
      * @memberof UsageBucket
      */
     gpuType?: string;
     /**
-     * 
+     * GPU instance seconds billed in the bucket. Always 0 on inference-usage rows.
      * @type {number}
      * @memberof UsageBucket
      */
     gpuSeconds: number;
     /**
-     * 
+     * Total cost of the row, in US cents.
      * @type {number}
      * @memberof UsageBucket
      */
     costCents: number;
+    /**
+     * Inference-usage rows only: the modality of the calls in this row (chat, image, video or embedding).
+     * 
+     * @type {string}
+     * @memberof UsageBucket
+     */
+    modality?: string;
+    /**
+     * Inference-usage rows only: the model `id` the calls in this row were made against.
+     * 
+     * @type {string}
+     * @memberof UsageBucket
+     */
+    model?: string;
+    /**
+     * Inference-usage rows only. Sum of input tokens; 0 for modalities not billed per token.
+     * @type {number}
+     * @memberof UsageBucket
+     */
+    promptTokens?: number;
+    /**
+     * Inference-usage rows only. Sum of output tokens; 0 for modalities not billed per token.
+     * @type {number}
+     * @memberof UsageBucket
+     */
+    completionTokens?: number;
+    /**
+     * Inference-usage rows only. Sum of generated images; 0 for non-image modalities.
+     * @type {number}
+     * @memberof UsageBucket
+     */
+    imageCount?: number;
 }
 
 /**
@@ -76,6 +109,11 @@ export function UsageBucketFromJSONTyped(json: any, ignoreDiscriminator: boolean
         'gpuType': json['gpu_type'] == null ? undefined : json['gpu_type'],
         'gpuSeconds': json['gpu_seconds'],
         'costCents': json['cost_cents'],
+        'modality': json['modality'] == null ? undefined : json['modality'],
+        'model': json['model'] == null ? undefined : json['model'],
+        'promptTokens': json['prompt_tokens'] == null ? undefined : json['prompt_tokens'],
+        'completionTokens': json['completion_tokens'] == null ? undefined : json['completion_tokens'],
+        'imageCount': json['image_count'] == null ? undefined : json['image_count'],
     };
 }
 
@@ -95,6 +133,11 @@ export function UsageBucketToJSONTyped(value?: UsageBucket | null, ignoreDiscrim
         'gpu_type': value['gpuType'],
         'gpu_seconds': value['gpuSeconds'],
         'cost_cents': value['costCents'],
+        'modality': value['modality'],
+        'model': value['model'],
+        'prompt_tokens': value['promptTokens'],
+        'completion_tokens': value['completionTokens'],
+        'image_count': value['imageCount'],
     };
 }
 

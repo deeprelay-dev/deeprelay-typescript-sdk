@@ -1,6 +1,7 @@
 
 # UsageBucket
 
+One `/usage` row. Every row carries `bucket_start`, `gpu_seconds` and `cost_cents`. When the request set `modality` or `model` the row is an inference-usage row: it also carries `modality`, `model`, `prompt_tokens`, `completion_tokens` and `image_count` (aggregating every serverless inference call in the bucket for that modality and model), and `gpu_seconds` is always 0. Otherwise it is an instance-usage row, carrying `instance_id` / `gpu_type` when `group_by` asked for them. 
 
 ## Properties
 
@@ -11,6 +12,11 @@ Name | Type
 `gpuType` | string
 `gpuSeconds` | number
 `costCents` | number
+`modality` | string
+`model` | string
+`promptTokens` | number
+`completionTokens` | number
+`imageCount` | number
 
 ## Example
 
@@ -24,6 +30,11 @@ const example = {
   "gpuType": null,
   "gpuSeconds": null,
   "costCents": null,
+  "modality": null,
+  "model": null,
+  "promptTokens": null,
+  "completionTokens": null,
+  "imageCount": null,
 } satisfies UsageBucket
 
 console.log(example)

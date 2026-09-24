@@ -31,6 +31,8 @@ export interface ListUsageRequest {
     end?: Date;
     cursor?: string;
     limit?: number;
+    modality?: ListUsageModalityEnum;
+    model?: string;
 }
 
 /**
@@ -68,6 +70,14 @@ export class UsageApi extends runtime.BaseAPI {
             queryParameters['limit'] = requestParameters['limit'];
         }
 
+        if (requestParameters['modality'] != null) {
+            queryParameters['modality'] = requestParameters['modality'];
+        }
+
+        if (requestParameters['model'] != null) {
+            queryParameters['model'] = requestParameters['model'];
+        }
+
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.accessToken) {
@@ -90,6 +100,7 @@ export class UsageApi extends runtime.BaseAPI {
     }
 
     /**
+     * Returns spend aggregated into time buckets over `[start, end)` (default: the last 30 days, `bucket=day`), newest bucket first.  The response has one of two row shapes, selected by the query:  - **Inference usage** — set `modality` and/or `model`. Rows aggregate serverless inference calls, one row per (bucket, modality, model), and carry `modality`, `model`, `prompt_tokens`, `completion_tokens` and `image_count`. This is the usage a serverless-inference customer is billed for. - **Instance usage** — neither `modality` nor `model` set. Rows aggregate GPU instance billing sessions, optionally split by `group_by`. With no instance usage this returns an empty `data` array, so to read inference spend always pass `modality` or `model`.  Requires the `billing:read` scope. 
      * Time-bucketed usage
      */
     async listUsageRaw(requestParameters: ListUsageRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UsagePage>> {
@@ -100,6 +111,7 @@ export class UsageApi extends runtime.BaseAPI {
     }
 
     /**
+     * Returns spend aggregated into time buckets over `[start, end)` (default: the last 30 days, `bucket=day`), newest bucket first.  The response has one of two row shapes, selected by the query:  - **Inference usage** — set `modality` and/or `model`. Rows aggregate serverless inference calls, one row per (bucket, modality, model), and carry `modality`, `model`, `prompt_tokens`, `completion_tokens` and `image_count`. This is the usage a serverless-inference customer is billed for. - **Instance usage** — neither `modality` nor `model` set. Rows aggregate GPU instance billing sessions, optionally split by `group_by`. With no instance usage this returns an empty `data` array, so to read inference spend always pass `modality` or `model`.  Requires the `billing:read` scope. 
      * Time-bucketed usage
      */
     async listUsage(requestParameters: ListUsageRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UsagePage> {
@@ -127,3 +139,13 @@ export const ListUsageGroupByEnum = {
     GpuType: 'gpu_type'
 } as const;
 export type ListUsageGroupByEnum = typeof ListUsageGroupByEnum[keyof typeof ListUsageGroupByEnum];
+/**
+ * @export
+ */
+export const ListUsageModalityEnum = {
+    Chat: 'chat',
+    Image: 'image',
+    Video: 'video',
+    Embedding: 'embedding'
+} as const;
+export type ListUsageModalityEnum = typeof ListUsageModalityEnum[keyof typeof ListUsageModalityEnum];
