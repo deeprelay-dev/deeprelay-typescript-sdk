@@ -1,7 +1,7 @@
 
 # SubscriptionPlan
 
-What the organization is — or would be — subscribing to. Always present, including for an organization that never subscribed: it is what a point of purchase renders before sending anyone to pay. 
+The plan the organization is on — or, for an organization that never subscribed, the Base plan it would get. Always present: it is what a point of purchase renders before sending anyone to pay. 
 
 ## Properties
 

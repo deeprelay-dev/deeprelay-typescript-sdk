@@ -13,10 +13,12 @@ Name | Type
 `qualified` | number
 `settled` | number
 `earnedCents` | number
+`commissionEarnedCents` | number
 `rewardCents` | number
 `refereeRewardCents` | number
 `qualifySpendCents` | number
 `holdDays` | number
+`commissionPct` | number
 `referred` | [RefereeStatus](RefereeStatus.md)
 
 ## Example
@@ -26,16 +28,18 @@ import type { Referral } from '@deeprelay/sdk'
 
 // TODO: Update the object below with actual values
 const example = {
-  "code": GPU-7KQ2-M4XP,
-  "inviteUrl": https://deeprelay.ai/r/GPU-7KQ2-M4XP,
+  "code": DR-7KQ2-M4XP,
+  "inviteUrl": https://deeprelay.ai/r/DR-7KQ2-M4XP,
   "pending": null,
   "qualified": null,
   "settled": null,
   "earnedCents": null,
+  "commissionEarnedCents": null,
   "rewardCents": null,
   "refereeRewardCents": null,
   "qualifySpendCents": null,
   "holdDays": null,
+  "commissionPct": null,
   "referred": null,
 } satisfies Referral
 

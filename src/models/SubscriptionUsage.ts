@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * deeprelay Public Developer API
- * Programmatic API for deeprelay. Authenticate with API keys minted from the dashboard. See https://deeprelay.ai/docs for details. 
+ * Programmatic API for deeprelay. Authenticate with API keys minted from the dashboard. See https://deeprelay.ai/docs for details.  Keys minted from the dashboard or `deeprelay login` belong to the Production server, https://api.deeprelay.ai/v1. The Demo server is an internal staging environment with its own key store.  Versioning: `/v1` is the API version. `info.version` is the revision of this `/v1` document, not a separate API.  OpenAI compatibility: chat completions follow the OpenAI request and response shapes, but not every OpenAI parameter is carried. Some are rejected with 400 `unsupported_parameter` and any parameter not declared in this spec is accepted and ignored. The full table is at https://deeprelay.ai/docs/api/inference#openai-compatibility. 
  *
  * The version of the OpenAPI document: 1.0.0
  * Contact: support@deeprelay.ai
@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
+import type { SubscriptionModelUsage } from './SubscriptionModelUsage';
+import {
+    SubscriptionModelUsageFromJSON,
+    SubscriptionModelUsageFromJSONTyped,
+    SubscriptionModelUsageToJSON,
+    SubscriptionModelUsageToJSONTyped,
+} from './SubscriptionModelUsage';
+
 /**
  * Consumption against the quota, from the same factor-weighted read the request-time gate evaluates — so this meter and enforcement cannot disagree.
  * 
@@ -47,17 +55,41 @@ export interface SubscriptionUsage {
      */
     weightedOutputTokens: number;
     /**
-     * Weighted input+output tokens over the trailing 7 days, against `quota.weekly_tokens`. A rolling figure, not a period one — it can be non-zero moments after a period rolls over.
+     * Weighted input tokens over the trailing 7 days, against `quota.weekly_input_tokens`. A rolling figure, not a period one — it can be non-zero moments after a period rolls over.
      * @type {number}
      * @memberof SubscriptionUsage
      */
-    weeklyWeightedTokens: number;
+    weeklyWeightedInputTokens: number;
+    /**
+     * Weighted output tokens over the trailing 7 days, against `quota.weekly_output_tokens`. A rolling figure, like `weekly_weighted_input_tokens`.
+     * @type {number}
+     * @memberof SubscriptionUsage
+     */
+    weeklyWeightedOutputTokens: number;
     /**
      * List-price metered cost of this period's plan traffic in micro-cents (1e-6 cent), against `quota.max_usage_micro_cents`.
      * @type {number}
      * @memberof SubscriptionUsage
      */
     costMicroCents: number;
+    /**
+     * Wallet-billed calls while subscribed, e.g. input-overshoot or quota-gate pay-as-you-go fallbacks and models the plan does not cover. Recent means the last 24 hours, clamped to the current period. Omitted when the count could not be read; its absence means unknown, not zero.
+     * @type {number}
+     * @memberof SubscriptionUsage
+     */
+    recentPaygCalls24h?: number;
+    /**
+     * This period's plan-covered usage split by model: the raw tokens each model served, its usage factor, and the weighted tokens they drew from the allowance. Heaviest weighted input first. Each model's weighted figures round down on their own, so they can sum to slightly less than `weighted_input_tokens` / `weighted_output_tokens`, which stay authoritative. Omitted when the breakdown could not be read or there is no covered usage.
+     * @type {Array<SubscriptionModelUsage>}
+     * @memberof SubscriptionUsage
+     */
+    byModel?: Array<SubscriptionModelUsage>;
+    /**
+     * The same breakdown over the trailing 7 days, against the weekly caps. Omitted under the same conditions as `by_model`.
+     * @type {Array<SubscriptionModelUsage>}
+     * @memberof SubscriptionUsage
+     */
+    weeklyByModel?: Array<SubscriptionModelUsage>;
 }
 
 /**
@@ -68,7 +100,8 @@ export function instanceOfSubscriptionUsage(value: object): value is Subscriptio
     if ((!('periodEnd' in (value as Record<string, any>)) && !('period_end' in (value as Record<string, any>))) || ((value as Record<string, any>)['periodEnd'] === undefined && (value as Record<string, any>)['period_end'] === undefined)) return false;
     if ((!('weightedInputTokens' in (value as Record<string, any>)) && !('weighted_input_tokens' in (value as Record<string, any>))) || ((value as Record<string, any>)['weightedInputTokens'] === undefined && (value as Record<string, any>)['weighted_input_tokens'] === undefined)) return false;
     if ((!('weightedOutputTokens' in (value as Record<string, any>)) && !('weighted_output_tokens' in (value as Record<string, any>))) || ((value as Record<string, any>)['weightedOutputTokens'] === undefined && (value as Record<string, any>)['weighted_output_tokens'] === undefined)) return false;
-    if ((!('weeklyWeightedTokens' in (value as Record<string, any>)) && !('weekly_weighted_tokens' in (value as Record<string, any>))) || ((value as Record<string, any>)['weeklyWeightedTokens'] === undefined && (value as Record<string, any>)['weekly_weighted_tokens'] === undefined)) return false;
+    if ((!('weeklyWeightedInputTokens' in (value as Record<string, any>)) && !('weekly_weighted_input_tokens' in (value as Record<string, any>))) || ((value as Record<string, any>)['weeklyWeightedInputTokens'] === undefined && (value as Record<string, any>)['weekly_weighted_input_tokens'] === undefined)) return false;
+    if ((!('weeklyWeightedOutputTokens' in (value as Record<string, any>)) && !('weekly_weighted_output_tokens' in (value as Record<string, any>))) || ((value as Record<string, any>)['weeklyWeightedOutputTokens'] === undefined && (value as Record<string, any>)['weekly_weighted_output_tokens'] === undefined)) return false;
     if ((!('costMicroCents' in (value as Record<string, any>)) && !('cost_micro_cents' in (value as Record<string, any>))) || ((value as Record<string, any>)['costMicroCents'] === undefined && (value as Record<string, any>)['cost_micro_cents'] === undefined)) return false;
     return true;
 }
@@ -87,8 +120,12 @@ export function SubscriptionUsageFromJSONTyped(json: any, ignoreDiscriminator: b
         'periodEnd': (new Date(json['period_end'])),
         'weightedInputTokens': json['weighted_input_tokens'],
         'weightedOutputTokens': json['weighted_output_tokens'],
-        'weeklyWeightedTokens': json['weekly_weighted_tokens'],
+        'weeklyWeightedInputTokens': json['weekly_weighted_input_tokens'],
+        'weeklyWeightedOutputTokens': json['weekly_weighted_output_tokens'],
         'costMicroCents': json['cost_micro_cents'],
+        'recentPaygCalls24h': json['recent_payg_calls_24h'] == null ? undefined : json['recent_payg_calls_24h'],
+        'byModel': json['by_model'] == null ? undefined : ((json['by_model'] as Array<any>).map(SubscriptionModelUsageFromJSON)),
+        'weeklyByModel': json['weekly_by_model'] == null ? undefined : ((json['weekly_by_model'] as Array<any>).map(SubscriptionModelUsageFromJSON)),
     };
 }
 
@@ -107,8 +144,12 @@ export function SubscriptionUsageToJSONTyped(value?: SubscriptionUsage | null, i
         'period_end': value['periodEnd'].toISOString(),
         'weighted_input_tokens': value['weightedInputTokens'],
         'weighted_output_tokens': value['weightedOutputTokens'],
-        'weekly_weighted_tokens': value['weeklyWeightedTokens'],
+        'weekly_weighted_input_tokens': value['weeklyWeightedInputTokens'],
+        'weekly_weighted_output_tokens': value['weeklyWeightedOutputTokens'],
         'cost_micro_cents': value['costMicroCents'],
+        'recent_payg_calls_24h': value['recentPaygCalls24h'],
+        'by_model': value['byModel'] == null ? undefined : ((value['byModel'] as Array<any>).map(SubscriptionModelUsageToJSON)),
+        'weekly_by_model': value['weeklyByModel'] == null ? undefined : ((value['weeklyByModel'] as Array<any>).map(SubscriptionModelUsageToJSON)),
     };
 }
 

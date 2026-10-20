@@ -9,6 +9,7 @@ Name | Type
 `index` | number
 `message` | [ChatMessage](ChatMessage.md)
 `finishReason` | string
+`logprobs` | { [key: string]: any; }
 
 ## Example
 
@@ -20,6 +21,7 @@ const example = {
   "index": null,
   "message": null,
   "finishReason": null,
+  "logprobs": null,
 } satisfies ChatChoice
 
 console.log(example)

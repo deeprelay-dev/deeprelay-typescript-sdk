@@ -10,6 +10,7 @@ Name | Type
 `type` | string
 `param` | string
 `code` | string
+`quotaFreesAt` | Date
 
 ## Example
 
@@ -22,6 +23,7 @@ const example = {
   "type": null,
   "param": null,
   "code": null,
+  "quotaFreesAt": null,
 } satisfies OpenAIErrorEnvelopeError
 
 console.log(example)

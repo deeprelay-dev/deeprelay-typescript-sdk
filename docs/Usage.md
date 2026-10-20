@@ -9,6 +9,10 @@ Name | Type
 `promptTokens` | number
 `completionTokens` | number
 `totalTokens` | number
+`promptTokensDetails` | [UsagePromptTokensDetails](UsagePromptTokensDetails.md)
+`completionTokensDetails` | [UsageCompletionTokensDetails](UsageCompletionTokensDetails.md)
+`cost` | number
+`costDetails` | [CostDetails](CostDetails.md)
 
 ## Example
 
@@ -20,6 +24,10 @@ const example = {
   "promptTokens": null,
   "completionTokens": null,
   "totalTokens": null,
+  "promptTokensDetails": null,
+  "completionTokensDetails": null,
+  "cost": null,
+  "costDetails": null,
 } satisfies Usage
 
 console.log(example)

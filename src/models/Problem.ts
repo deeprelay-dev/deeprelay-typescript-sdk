@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * deeprelay Public Developer API
- * Programmatic API for deeprelay. Authenticate with API keys minted from the dashboard. See https://deeprelay.ai/docs for details. 
+ * Programmatic API for deeprelay. Authenticate with API keys minted from the dashboard. See https://deeprelay.ai/docs for details.  Keys minted from the dashboard or `deeprelay login` belong to the Production server, https://api.deeprelay.ai/v1. The Demo server is an internal staging environment with its own key store.  Versioning: `/v1` is the API version. `info.version` is the revision of this `/v1` document, not a separate API.  OpenAI compatibility: chat completions follow the OpenAI request and response shapes, but not every OpenAI parameter is carried. Some are rejected with 400 `unsupported_parameter` and any parameter not declared in this spec is accepted and ignored. The full table is at https://deeprelay.ai/docs/api/inference#openai-compatibility. 
  *
  * The version of the OpenAPI document: 1.0.0
  * Contact: support@deeprelay.ai
@@ -55,6 +55,18 @@ export interface Problem {
      * @memberof Problem
      */
     requestId: string;
+    /**
+     * On a 422 `validation_failed`, the request field that failed.
+     * @type {string}
+     * @memberof Problem
+     */
+    field?: string;
+    /**
+     * On a 422 `export_too_large`, the export row cap.
+     * @type {number}
+     * @memberof Problem
+     */
+    maxRows?: number;
 }
 
 
@@ -78,7 +90,16 @@ export const ProblemCodeEnum = {
     InsufficientBalance: 'insufficient_balance',
     QuotaExceeded: 'quota_exceeded',
     RateLimited: 'rate_limited',
+    Forbidden: 'forbidden',
+    InvalidRequest: 'invalid_request',
+    KeysManageRequired: 'keys_manage_required',
+    ScopeExceedsCaller: 'scope_exceeds_caller',
+    ExportTooLarge: 'export_too_large',
+    ApiKeyBudgetExceeded: 'api_key_budget_exceeded',
+    MemberSpendLimitReached: 'member_spend_limit_reached',
+    ModelNotAllowedForKey: 'model_not_allowed_for_key',
     CreatorCheckUnavailable: 'creator_check_unavailable',
+    SwitchRenewalUnpaid: 'switch_renewal_unpaid',
     InternalError: 'internal_error',
     OperationFailed: 'operation_failed'
 } as const;
@@ -114,6 +135,8 @@ export function ProblemFromJSONTyped(json: any, ignoreDiscriminator: boolean): P
         'detail': json['detail'],
         'code': json['code'],
         'requestId': json['request_id'],
+        'field': json['field'] == null ? undefined : json['field'],
+        'maxRows': json['max_rows'] == null ? undefined : json['max_rows'],
     };
 }
 
@@ -134,6 +157,8 @@ export function ProblemToJSONTyped(value?: Problem | null, ignoreDiscriminator: 
         'detail': value['detail'],
         'code': value['code'],
         'request_id': value['requestId'],
+        'field': value['field'],
+        'max_rows': value['maxRows'],
     };
 }
 

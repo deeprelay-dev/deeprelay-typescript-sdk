@@ -1,7 +1,7 @@
 
 # SubscriptionQuota
 
-The plan\'s configured allowances — the denominators of the usage meter. Always present, including for an organization that has not subscribed, where it describes what subscribing would provide.  Token figures are WEIGHTED tokens: every model carries a usage factor, so a model at factor 2 spends two of these per token it serves. 
+A plan\'s configured allowances — the denominators of the usage meter. On `/billing/subscription` it is the quota of the plan the organization is on; always present, including for an organization that has not subscribed, where it describes what the Base plan would provide. Each entry of `plans` carries its own.  Token figures are WEIGHTED tokens: every model carries a usage factor, so a model at factor 2 spends two of these per token it serves. 
 
 ## Properties
 
@@ -9,7 +9,8 @@ Name | Type
 ------------ | -------------
 `inputTokensMonthly` | number
 `outputTokensMonthly` | number
-`weeklyTokens` | number
+`weeklyInputTokens` | number
+`weeklyOutputTokens` | number
 `maxUsageMicroCents` | number
 `paygDiscountBp` | number
 
@@ -22,7 +23,8 @@ import type { SubscriptionQuota } from '@deeprelay/sdk'
 const example = {
   "inputTokensMonthly": null,
   "outputTokensMonthly": null,
-  "weeklyTokens": null,
+  "weeklyInputTokens": null,
+  "weeklyOutputTokens": null,
   "maxUsageMicroCents": null,
   "paygDiscountBp": null,
 } satisfies SubscriptionQuota

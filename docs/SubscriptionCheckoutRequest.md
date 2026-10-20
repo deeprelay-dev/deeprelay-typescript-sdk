@@ -10,6 +10,7 @@ Name | Type
 `successUrl` | string
 `cancelUrl` | string
 `planKey` | string
+`method` | string
 
 ## Example
 
@@ -21,6 +22,7 @@ const example = {
   "successUrl": null,
   "cancelUrl": null,
   "planKey": null,
+  "method": null,
 } satisfies SubscriptionCheckoutRequest
 
 console.log(example)

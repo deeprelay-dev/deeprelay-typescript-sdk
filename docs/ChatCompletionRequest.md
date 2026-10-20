@@ -10,8 +10,19 @@ Name | Type
 `messages` | [Array&lt;ChatMessage&gt;](ChatMessage.md)
 `temperature` | number
 `maxTokens` | number
+`maxCompletionTokens` | number
 `stream` | boolean
 `streamOptions` | [StreamOptions](StreamOptions.md)
+`tools` | [Array&lt;Tool&gt;](Tool.md)
+`toolChoice` | [ChatCompletionRequestToolChoice](ChatCompletionRequestToolChoice.md)
+`responseFormat` | [ChatCompletionRequestResponseFormat](ChatCompletionRequestResponseFormat.md)
+`reasoningEffort` | string
+`presencePenalty` | number
+`frequencyPenalty` | number
+`seed` | number
+`parallelToolCalls` | boolean
+`logprobs` | boolean
+`topLogprobs` | number
 
 ## Example
 
@@ -24,8 +35,19 @@ const example = {
   "messages": null,
   "temperature": null,
   "maxTokens": null,
+  "maxCompletionTokens": null,
   "stream": null,
   "streamOptions": null,
+  "tools": null,
+  "toolChoice": null,
+  "responseFormat": null,
+  "reasoningEffort": null,
+  "presencePenalty": null,
+  "frequencyPenalty": null,
+  "seed": null,
+  "parallelToolCalls": null,
+  "logprobs": null,
+  "topLogprobs": null,
 } satisfies ChatCompletionRequest
 
 console.log(example)

@@ -11,8 +11,12 @@ Name | Type
 `periodEnd` | Date
 `weightedInputTokens` | number
 `weightedOutputTokens` | number
-`weeklyWeightedTokens` | number
+`weeklyWeightedInputTokens` | number
+`weeklyWeightedOutputTokens` | number
 `costMicroCents` | number
+`recentPaygCalls24h` | number
+`byModel` | [Array&lt;SubscriptionModelUsage&gt;](SubscriptionModelUsage.md)
+`weeklyByModel` | [Array&lt;SubscriptionModelUsage&gt;](SubscriptionModelUsage.md)
 
 ## Example
 
@@ -25,8 +29,12 @@ const example = {
   "periodEnd": null,
   "weightedInputTokens": null,
   "weightedOutputTokens": null,
-  "weeklyWeightedTokens": null,
+  "weeklyWeightedInputTokens": null,
+  "weeklyWeightedOutputTokens": null,
   "costMicroCents": null,
+  "recentPaygCalls24h": null,
+  "byModel": null,
+  "weeklyByModel": null,
 } satisfies SubscriptionUsage
 
 console.log(example)

@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * deeprelay Public Developer API
- * Programmatic API for deeprelay. Authenticate with API keys minted from the dashboard. See https://deeprelay.ai/docs for details. 
+ * Programmatic API for deeprelay. Authenticate with API keys minted from the dashboard. See https://deeprelay.ai/docs for details.  Keys minted from the dashboard or `deeprelay login` belong to the Production server, https://api.deeprelay.ai/v1. The Demo server is an internal staging environment with its own key store.  Versioning: `/v1` is the API version. `info.version` is the revision of this `/v1` document, not a separate API.  OpenAI compatibility: chat completions follow the OpenAI request and response shapes, but not every OpenAI parameter is carried. Some are rejected with 400 `unsupported_parameter` and any parameter not declared in this spec is accepted and ignored. The full table is at https://deeprelay.ai/docs/api/inference#openai-compatibility. 
  *
  * The version of the OpenAPI document: 1.0.0
  * Contact: support@deeprelay.ai
@@ -45,7 +45,30 @@ export interface SubscriptionCheckoutSession {
      * @memberof SubscriptionCheckoutSession
      */
     plan: SubscriptionPlan;
+    /**
+     * Set when the checkout switches an existing plan's billing currency.
+     * @type {SubscriptionCheckoutSessionSwitchToEnum}
+     * @memberof SubscriptionCheckoutSession
+     */
+    switchTo?: SubscriptionCheckoutSessionSwitchToEnum;
+    /**
+     * For a switch, when the new currency is first charged (the current renewal date).
+     * @type {Date}
+     * @memberof SubscriptionCheckoutSession
+     */
+    firstChargeAt?: Date;
 }
+
+
+/**
+ * @export
+ */
+export const SubscriptionCheckoutSessionSwitchToEnum = {
+    Card: 'card',
+    Upi: 'upi'
+} as const;
+export type SubscriptionCheckoutSessionSwitchToEnum = typeof SubscriptionCheckoutSessionSwitchToEnum[keyof typeof SubscriptionCheckoutSessionSwitchToEnum];
+
 
 /**
  * Check if a given object implements the SubscriptionCheckoutSession interface.
@@ -70,6 +93,8 @@ export function SubscriptionCheckoutSessionFromJSONTyped(json: any, ignoreDiscri
         'checkoutUrl': json['checkout_url'],
         'sessionId': json['session_id'],
         'plan': SubscriptionPlanFromJSON(json['plan']),
+        'switchTo': json['switch_to'] == null ? undefined : json['switch_to'],
+        'firstChargeAt': json['first_charge_at'] == null ? undefined : (new Date(json['first_charge_at'])),
     };
 }
 
@@ -87,6 +112,8 @@ export function SubscriptionCheckoutSessionToJSONTyped(value?: SubscriptionCheck
         'checkout_url': value['checkoutUrl'],
         'session_id': value['sessionId'],
         'plan': SubscriptionPlanToJSON(value['plan']),
+        'switch_to': value['switchTo'],
+        'first_charge_at': value['firstChargeAt'] == null ? value['firstChargeAt'] : value['firstChargeAt'].toISOString(),
     };
 }
 

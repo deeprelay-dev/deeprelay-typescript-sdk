@@ -1,7 +1,7 @@
 
 # Subscription
 
-The organization\'s flat subscription tier: entitlement, billing period, the configured quota, and consumption against it. The console and this endpoint assemble it from the same source, so the two surfaces cannot report different numbers. 
+The organization\'s subscription: entitlement, billing period, the plan it is on with that plan\'s configured quota, consumption against it, and the plans this deployment offers. The console and this endpoint assemble it from the same source, so the two surfaces cannot report different numbers. 
 
 ## Properties
 
@@ -15,6 +15,7 @@ Name | Type
 `plan` | [SubscriptionPlan](SubscriptionPlan.md)
 `quota` | [SubscriptionQuota](SubscriptionQuota.md)
 `usage` | [SubscriptionUsage](SubscriptionUsage.md)
+`plans` | [Array&lt;SubscriptionTier&gt;](SubscriptionTier.md)
 
 ## Example
 
@@ -31,6 +32,7 @@ const example = {
   "plan": null,
   "quota": null,
   "usage": null,
+  "plans": null,
 } satisfies Subscription
 
 console.log(example)

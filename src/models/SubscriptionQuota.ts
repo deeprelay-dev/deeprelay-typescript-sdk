@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * deeprelay Public Developer API
- * Programmatic API for deeprelay. Authenticate with API keys minted from the dashboard. See https://deeprelay.ai/docs for details. 
+ * Programmatic API for deeprelay. Authenticate with API keys minted from the dashboard. See https://deeprelay.ai/docs for details.  Keys minted from the dashboard or `deeprelay login` belong to the Production server, https://api.deeprelay.ai/v1. The Demo server is an internal staging environment with its own key store.  Versioning: `/v1` is the API version. `info.version` is the revision of this `/v1` document, not a separate API.  OpenAI compatibility: chat completions follow the OpenAI request and response shapes, but not every OpenAI parameter is carried. Some are rejected with 400 `unsupported_parameter` and any parameter not declared in this spec is accepted and ignored. The full table is at https://deeprelay.ai/docs/api/inference#openai-compatibility. 
  *
  * The version of the OpenAPI document: 1.0.0
  * Contact: support@deeprelay.ai
@@ -14,7 +14,7 @@
 
 import { mapValues } from '../runtime';
 /**
- * The plan's configured allowances — the denominators of the usage meter. Always present, including for an organization that has not subscribed, where it describes what subscribing would provide.
+ * A plan's configured allowances — the denominators of the usage meter. On `/billing/subscription` it is the quota of the plan the organization is on; always present, including for an organization that has not subscribed, where it describes what the Base plan would provide. Each entry of `plans` carries its own.
  * 
  * Token figures are WEIGHTED tokens: every model carries a usage factor, so a model at factor 2 spends two of these per token it serves.
  * 
@@ -35,11 +35,17 @@ export interface SubscriptionQuota {
      */
     outputTokensMonthly: number;
     /**
-     * Weighted input+output tokens allowed over a ROLLING 7-day window. This cap slides with the clock; it does not reset with the billing period.
+     * Weighted input tokens allowed over a ROLLING 7-day window. This cap slides with the clock; it does not reset with the billing period. 0 means no weekly input cap is configured on this deployment.
      * @type {number}
      * @memberof SubscriptionQuota
      */
-    weeklyTokens: number;
+    weeklyInputTokens: number;
+    /**
+     * Weighted output tokens allowed over a ROLLING 7-day window, independent of the weekly input cap. Slides with the clock; it does not reset with the billing period. Reasoning tokens are output tokens. 0 means no weekly output cap is configured.
+     * @type {number}
+     * @memberof SubscriptionQuota
+     */
+    weeklyOutputTokens: number;
     /**
      * Per-period backstop on list-price metered cost, in micro-cents (1e-6 cent). 0 means no backstop is configured on this deployment.
      * @type {number}
@@ -61,7 +67,8 @@ export interface SubscriptionQuota {
 export function instanceOfSubscriptionQuota(value: object): value is SubscriptionQuota {
     if ((!('inputTokensMonthly' in (value as Record<string, any>)) && !('input_tokens_monthly' in (value as Record<string, any>))) || ((value as Record<string, any>)['inputTokensMonthly'] === undefined && (value as Record<string, any>)['input_tokens_monthly'] === undefined)) return false;
     if ((!('outputTokensMonthly' in (value as Record<string, any>)) && !('output_tokens_monthly' in (value as Record<string, any>))) || ((value as Record<string, any>)['outputTokensMonthly'] === undefined && (value as Record<string, any>)['output_tokens_monthly'] === undefined)) return false;
-    if ((!('weeklyTokens' in (value as Record<string, any>)) && !('weekly_tokens' in (value as Record<string, any>))) || ((value as Record<string, any>)['weeklyTokens'] === undefined && (value as Record<string, any>)['weekly_tokens'] === undefined)) return false;
+    if ((!('weeklyInputTokens' in (value as Record<string, any>)) && !('weekly_input_tokens' in (value as Record<string, any>))) || ((value as Record<string, any>)['weeklyInputTokens'] === undefined && (value as Record<string, any>)['weekly_input_tokens'] === undefined)) return false;
+    if ((!('weeklyOutputTokens' in (value as Record<string, any>)) && !('weekly_output_tokens' in (value as Record<string, any>))) || ((value as Record<string, any>)['weeklyOutputTokens'] === undefined && (value as Record<string, any>)['weekly_output_tokens'] === undefined)) return false;
     if ((!('maxUsageMicroCents' in (value as Record<string, any>)) && !('max_usage_micro_cents' in (value as Record<string, any>))) || ((value as Record<string, any>)['maxUsageMicroCents'] === undefined && (value as Record<string, any>)['max_usage_micro_cents'] === undefined)) return false;
     if ((!('paygDiscountBp' in (value as Record<string, any>)) && !('payg_discount_bp' in (value as Record<string, any>))) || ((value as Record<string, any>)['paygDiscountBp'] === undefined && (value as Record<string, any>)['payg_discount_bp'] === undefined)) return false;
     return true;
@@ -79,7 +86,8 @@ export function SubscriptionQuotaFromJSONTyped(json: any, ignoreDiscriminator: b
         
         'inputTokensMonthly': json['input_tokens_monthly'],
         'outputTokensMonthly': json['output_tokens_monthly'],
-        'weeklyTokens': json['weekly_tokens'],
+        'weeklyInputTokens': json['weekly_input_tokens'],
+        'weeklyOutputTokens': json['weekly_output_tokens'],
         'maxUsageMicroCents': json['max_usage_micro_cents'],
         'paygDiscountBp': json['payg_discount_bp'],
     };
@@ -98,7 +106,8 @@ export function SubscriptionQuotaToJSONTyped(value?: SubscriptionQuota | null, i
         
         'input_tokens_monthly': value['inputTokensMonthly'],
         'output_tokens_monthly': value['outputTokensMonthly'],
-        'weekly_tokens': value['weeklyTokens'],
+        'weekly_input_tokens': value['weeklyInputTokens'],
+        'weekly_output_tokens': value['weeklyOutputTokens'],
         'max_usage_micro_cents': value['maxUsageMicroCents'],
         'payg_discount_bp': value['paygDiscountBp'],
     };

@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * deeprelay Public Developer API
- * Programmatic API for deeprelay. Authenticate with API keys minted from the dashboard. See https://deeprelay.ai/docs for details. 
+ * Programmatic API for deeprelay. Authenticate with API keys minted from the dashboard. See https://deeprelay.ai/docs for details.  Keys minted from the dashboard or `deeprelay login` belong to the Production server, https://api.deeprelay.ai/v1. The Demo server is an internal staging environment with its own key store.  Versioning: `/v1` is the API version. `info.version` is the revision of this `/v1` document, not a separate API.  OpenAI compatibility: chat completions follow the OpenAI request and response shapes, but not every OpenAI parameter is carried. Some are rejected with 400 `unsupported_parameter` and any parameter not declared in this spec is accepted and ignored. The full table is at https://deeprelay.ai/docs/api/inference#openai-compatibility. 
  *
  * The version of the OpenAPI document: 1.0.0
  * Contact: support@deeprelay.ai
@@ -85,20 +85,24 @@ export interface CancelVideoRequest {
 
 export interface CreateChatCompletionRequest {
     chatCompletionRequest: ChatCompletionRequest;
+    xClientRequestId?: string;
 }
 
 export interface CreateEmbeddingsRequest {
     embeddingsRequest: EmbeddingsRequest;
+    xClientRequestId?: string;
 }
 
 export interface CreateImageRequest {
     imagesGenerationsRequest: ImagesGenerationsRequest;
     idempotencyKey?: string;
+    xClientRequestId?: string;
 }
 
 export interface CreateVideoRequest {
     videoCreateRequest: VideoCreateRequest;
     idempotencyKey?: string;
+    xClientRequestId?: string;
 }
 
 export interface GetModelRequest {
@@ -119,6 +123,7 @@ export interface InferencePreflightRequest {
 
 export interface ListModelsRequest {
     modality?: ListModelsModalityEnum;
+    ifNoneMatch?: string;
 }
 
 export interface ListVideosRequest {
@@ -201,6 +206,10 @@ export class InferenceApi extends runtime.BaseAPI {
 
         headerParameters['Content-Type'] = 'application/json';
 
+        if (requestParameters['xClientRequestId'] != null) {
+            headerParameters['X-Client-Request-Id'] = String(requestParameters['xClientRequestId']);
+        }
+
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
             const tokenString = await token("bearerAuth", []);
@@ -222,6 +231,7 @@ export class InferenceApi extends runtime.BaseAPI {
     }
 
     /**
+     * OpenAI-compatible chat completion. Parameters fall into three groups:  - **Semantic parameters are gated per model.** `response_format`,   `tools`/`tool_choice`, `logprobs`/`top_logprobs` and `image_url`   content parts are sent only to a model whose `/v1/models` entry   lists the capability in `supported_parameters` (`vision` for   images). A model without it returns 400 `unsupported_parameter`   whose message names the models that do support it. When the model   supports the parameter but none of its currently routable upstreams   does, the request fails with 503 `upstream_unavailable` rather than   being silently degraded. - **Hints are forwarded or dropped, never rejected.**   `reasoning_effort`, `presence_penalty`, `frequency_penalty`, `seed`   and `parallel_tool_calls` are forwarded to an upstream that accepts   them and otherwise dropped. Every drop is reported in the   `x-deeprelay-ignored-params` response header. - **Rejected everywhere.** `logit_bias` and `function_call` return   400 `unsupported_parameter`; `input_audio` and `file` content parts   return 400 `unsupported_content_part`.  A non-strict `json_schema` sent to a model that can only guarantee JSON is served as `json_object` and reported as `response_format:downgraded`; a strict one is rejected. A `json_schema` over 64 KiB or nested deeper than 32 levels returns 400 `unsupported_parameter` (param `response_format`). An upstream rejection of a request the relay accepted returns 400 `upstream_rejected_request`. A non-chat model id returns 404 `model_not_found`. The request body is capped at 32 MiB (413 `request_too_large`).  Every successful response carries `usage.cost` and `usage.cost_details` (on a stream, only in the final usage chunk). See https://deeprelay.ai/docs/api/inference#openai-compatibility. 
      * Create a chat completion (OpenAI-compatible)
      */
     async createChatCompletionRaw(requestParameters: CreateChatCompletionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ChatCompletionResponse>> {
@@ -232,6 +242,7 @@ export class InferenceApi extends runtime.BaseAPI {
     }
 
     /**
+     * OpenAI-compatible chat completion. Parameters fall into three groups:  - **Semantic parameters are gated per model.** `response_format`,   `tools`/`tool_choice`, `logprobs`/`top_logprobs` and `image_url`   content parts are sent only to a model whose `/v1/models` entry   lists the capability in `supported_parameters` (`vision` for   images). A model without it returns 400 `unsupported_parameter`   whose message names the models that do support it. When the model   supports the parameter but none of its currently routable upstreams   does, the request fails with 503 `upstream_unavailable` rather than   being silently degraded. - **Hints are forwarded or dropped, never rejected.**   `reasoning_effort`, `presence_penalty`, `frequency_penalty`, `seed`   and `parallel_tool_calls` are forwarded to an upstream that accepts   them and otherwise dropped. Every drop is reported in the   `x-deeprelay-ignored-params` response header. - **Rejected everywhere.** `logit_bias` and `function_call` return   400 `unsupported_parameter`; `input_audio` and `file` content parts   return 400 `unsupported_content_part`.  A non-strict `json_schema` sent to a model that can only guarantee JSON is served as `json_object` and reported as `response_format:downgraded`; a strict one is rejected. A `json_schema` over 64 KiB or nested deeper than 32 levels returns 400 `unsupported_parameter` (param `response_format`). An upstream rejection of a request the relay accepted returns 400 `upstream_rejected_request`. A non-chat model id returns 404 `model_not_found`. The request body is capped at 32 MiB (413 `request_too_large`).  Every successful response carries `usage.cost` and `usage.cost_details` (on a stream, only in the final usage chunk). See https://deeprelay.ai/docs/api/inference#openai-compatibility. 
      * Create a chat completion (OpenAI-compatible)
      */
     async createChatCompletion(requestParameters: CreateChatCompletionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ChatCompletionResponse> {
@@ -255,6 +266,10 @@ export class InferenceApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (requestParameters['xClientRequestId'] != null) {
+            headerParameters['X-Client-Request-Id'] = String(requestParameters['xClientRequestId']);
+        }
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
@@ -317,6 +332,10 @@ export class InferenceApi extends runtime.BaseAPI {
             headerParameters['Idempotency-Key'] = String(requestParameters['idempotencyKey']);
         }
 
+        if (requestParameters['xClientRequestId'] != null) {
+            headerParameters['X-Client-Request-Id'] = String(requestParameters['xClientRequestId']);
+        }
+
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
             const tokenString = await token("bearerAuth", []);
@@ -376,6 +395,10 @@ export class InferenceApi extends runtime.BaseAPI {
 
         if (requestParameters['idempotencyKey'] != null) {
             headerParameters['Idempotency-Key'] = String(requestParameters['idempotencyKey']);
+        }
+
+        if (requestParameters['xClientRequestId'] != null) {
+            headerParameters['X-Client-Request-Id'] = String(requestParameters['xClientRequestId']);
         }
 
         if (this.configuration && this.configuration.accessToken) {
@@ -454,6 +477,7 @@ export class InferenceApi extends runtime.BaseAPI {
     }
 
     /**
+     * A key with a model allowlist gets 403 `model_not_allowed_for_key` for a model off its list, and the same 403 for an id that does not exist.
      * Get a specific model (OpenAI-compatible)
      */
     async getModelRaw(requestParameters: GetModelRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Model>> {
@@ -464,6 +488,7 @@ export class InferenceApi extends runtime.BaseAPI {
     }
 
     /**
+     * A key with a model allowlist gets 403 `model_not_allowed_for_key` for a model off its list, and the same 403 for an id that does not exist.
      * Get a specific model (OpenAI-compatible)
      */
     async getModel(requestParameters: GetModelRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Model> {
@@ -649,6 +674,10 @@ export class InferenceApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (requestParameters['ifNoneMatch'] != null) {
+            headerParameters['If-None-Match'] = String(requestParameters['ifNoneMatch']);
+        }
+
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
             const tokenString = await token("bearerAuth", []);
@@ -669,6 +698,7 @@ export class InferenceApi extends runtime.BaseAPI {
     }
 
     /**
+     * Works with or without an API key, and returns the same body either way. Without a key the response is publicly cacheable (`Cache-Control: public, max-age=60`), carries a strong `ETag` (send `If-None-Match` to get a 304), and is rate-limited per client IP (429 `rate_limit_exceeded` with Retry-After). With a key it is `Cache-Control: private` and counts against the key\'s rate limit; an invalid key returns 401, it does not fall back to anonymous access. Error responses are `no-store`.  Each entry\'s `supported_parameters` is backed by live capability probes of the model\'s upstreams: it is the list to check before sending a gated parameter (`response_format`, `structured_outputs`, `logprobs`, `tools`, `vision`, ...).  One exception to \"the same body\": a key with a model allowlist (`allowed_models`) sees only the models on its list.  Each entry may carry a `metrics` object (always the last key): measured time to first token, decode rate and success rate over a rolling window of deeprelay customer traffic. Below the sample minimum `insufficient_data` is true and the figure is omitted, never zero. 
      * List available models (OpenAI-compatible)
      */
     async listModelsRaw(requestParameters: ListModelsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ModelList>> {
@@ -679,6 +709,7 @@ export class InferenceApi extends runtime.BaseAPI {
     }
 
     /**
+     * Works with or without an API key, and returns the same body either way. Without a key the response is publicly cacheable (`Cache-Control: public, max-age=60`), carries a strong `ETag` (send `If-None-Match` to get a 304), and is rate-limited per client IP (429 `rate_limit_exceeded` with Retry-After). With a key it is `Cache-Control: private` and counts against the key\'s rate limit; an invalid key returns 401, it does not fall back to anonymous access. Error responses are `no-store`.  Each entry\'s `supported_parameters` is backed by live capability probes of the model\'s upstreams: it is the list to check before sending a gated parameter (`response_format`, `structured_outputs`, `logprobs`, `tools`, `vision`, ...).  One exception to \"the same body\": a key with a model allowlist (`allowed_models`) sees only the models on its list.  Each entry may carry a `metrics` object (always the last key): measured time to first token, decode rate and success rate over a rolling window of deeprelay customer traffic. Below the sample minimum `insufficient_data` is true and the figure is omitted, never zero. 
      * List available models (OpenAI-compatible)
      */
     async listModels(requestParameters: ListModelsRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ModelList> {

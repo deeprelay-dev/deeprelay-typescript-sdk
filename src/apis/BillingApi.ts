@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * deeprelay Public Developer API
- * Programmatic API for deeprelay. Authenticate with API keys minted from the dashboard. See https://deeprelay.ai/docs for details. 
+ * Programmatic API for deeprelay. Authenticate with API keys minted from the dashboard. See https://deeprelay.ai/docs for details.  Keys minted from the dashboard or `deeprelay login` belong to the Production server, https://api.deeprelay.ai/v1. The Demo server is an internal staging environment with its own key store.  Versioning: `/v1` is the API version. `info.version` is the revision of this `/v1` document, not a separate API.  OpenAI compatibility: chat completions follow the OpenAI request and response shapes, but not every OpenAI parameter is carried. Some are rejected with 400 `unsupported_parameter` and any parameter not declared in this spec is accepted and ignored. The full table is at https://deeprelay.ai/docs/api/inference#openai-compatibility. 
  *
  * The version of the OpenAPI document: 1.0.0
  * Contact: support@deeprelay.ai
@@ -74,6 +74,11 @@ import {
     SubscriptionPortalSessionToJSON,
 } from '../models/SubscriptionPortalSession';
 import {
+    type SubscriptionUpgradeRequest,
+    SubscriptionUpgradeRequestFromJSON,
+    SubscriptionUpgradeRequestToJSON,
+} from '../models/SubscriptionUpgradeRequest';
+import {
     type UpdateSpendingLimitRequest,
     UpdateSpendingLimitRequestFromJSON,
     UpdateSpendingLimitRequestToJSON,
@@ -97,6 +102,10 @@ export interface GetDepositRequest {
 
 export interface UpdateSpendingLimitOperationRequest {
     updateSpendingLimitRequest: UpdateSpendingLimitRequest;
+}
+
+export interface UpgradeSubscriptionRequest {
+    subscriptionUpgradeRequest: SubscriptionUpgradeRequest;
 }
 
 /**
@@ -192,7 +201,7 @@ export class BillingApi extends runtime.BaseAPI {
     }
 
     /**
-     * Opens a hosted checkout session for the flat tier and returns its URL. Requires the `billing:write` scope AND organization-admin privileges — subscribing spends organization money.  This endpoint does NOT subscribe anyone. Checkout is a hosted page that needs a browser and a card, so the caller\'s job is to put the returned URL in front of a human. The subscription becomes active when payment completes, which is not synchronous with this call: poll `/billing/subscription` to confirm.  `success_url` and `cancel_url` are optional and fall back to the deployment\'s configured redirects, which is what lets a command-line client start a purchase without having any URLs of its own. An empty request body is valid and means \"use every default\".  `plan_key`, when sent, pins the plan the client DISPLAYED: an unknown key is a 400 rather than a silent purchase of a different tier. Today there is one tier, so the only accepted value is its key — but sending it is the forward-compatible choice.  One flat tier means at most one subscription per organization: a second checkout while an entitling subscription exists is a 409. 
+     * Opens a hosted checkout session for a subscription plan and returns its URL. Requires the `billing:write` scope AND organization-admin privileges — subscribing spends organization money.  This endpoint does NOT subscribe anyone. Checkout is a hosted page that needs a browser and a card, so the caller\'s job is to put the returned URL in front of a human. The subscription becomes active when payment completes, which is not synchronous with this call: poll `/billing/subscription` to confirm.  `success_url` and `cancel_url` are optional and fall back to the deployment\'s configured redirects, which is what lets a command-line client start a purchase without having any URLs of its own. An empty request body is valid and means \"use every default\". When sent, they must be on the deployment\'s dashboard origin, else 422 `validation_failed`.  `plan_key` names the plan to buy: `flat` (Base, the default when the field is omitted) or `plus`. It pins the plan the client DISPLAYED — an unknown key, or a plan this deployment does not offer, is a 400 rather than a silent purchase of a different tier. The `plans` array on `/billing/subscription` lists the accepted keys.  One subscription per organization: a second checkout while an entitling subscription exists is a 409. To move an existing subscription to a bigger plan use `/billing/subscription/upgrade`.  `method` picks how the plan is paid: `card` (dollars, card or Link; the default) or `upi` (rupees, UPI AutoPay, India). On an organization that already subscribes, an explicit `method` in the other currency is a switch, not a second subscription: the link saves the new card or UPI AutoPay mandate (nothing is charged), and once that completes the same plan is moved to the new currency, first charged on the current renewal date (that month is already paid). The answer then carries `switch_to` and `first_charge_at`. A switch is refused (409) within two days of renewal, while the plan is set to cancel, while an upgrade waits on its UPI payment, and in the currency the plan already uses. 
      * Start a subscription checkout session
      */
     async createSubscriptionCheckoutRaw(requestParameters: CreateSubscriptionCheckoutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SubscriptionCheckoutSession>> {
@@ -203,7 +212,7 @@ export class BillingApi extends runtime.BaseAPI {
     }
 
     /**
-     * Opens a hosted checkout session for the flat tier and returns its URL. Requires the `billing:write` scope AND organization-admin privileges — subscribing spends organization money.  This endpoint does NOT subscribe anyone. Checkout is a hosted page that needs a browser and a card, so the caller\'s job is to put the returned URL in front of a human. The subscription becomes active when payment completes, which is not synchronous with this call: poll `/billing/subscription` to confirm.  `success_url` and `cancel_url` are optional and fall back to the deployment\'s configured redirects, which is what lets a command-line client start a purchase without having any URLs of its own. An empty request body is valid and means \"use every default\".  `plan_key`, when sent, pins the plan the client DISPLAYED: an unknown key is a 400 rather than a silent purchase of a different tier. Today there is one tier, so the only accepted value is its key — but sending it is the forward-compatible choice.  One flat tier means at most one subscription per organization: a second checkout while an entitling subscription exists is a 409. 
+     * Opens a hosted checkout session for a subscription plan and returns its URL. Requires the `billing:write` scope AND organization-admin privileges — subscribing spends organization money.  This endpoint does NOT subscribe anyone. Checkout is a hosted page that needs a browser and a card, so the caller\'s job is to put the returned URL in front of a human. The subscription becomes active when payment completes, which is not synchronous with this call: poll `/billing/subscription` to confirm.  `success_url` and `cancel_url` are optional and fall back to the deployment\'s configured redirects, which is what lets a command-line client start a purchase without having any URLs of its own. An empty request body is valid and means \"use every default\". When sent, they must be on the deployment\'s dashboard origin, else 422 `validation_failed`.  `plan_key` names the plan to buy: `flat` (Base, the default when the field is omitted) or `plus`. It pins the plan the client DISPLAYED — an unknown key, or a plan this deployment does not offer, is a 400 rather than a silent purchase of a different tier. The `plans` array on `/billing/subscription` lists the accepted keys.  One subscription per organization: a second checkout while an entitling subscription exists is a 409. To move an existing subscription to a bigger plan use `/billing/subscription/upgrade`.  `method` picks how the plan is paid: `card` (dollars, card or Link; the default) or `upi` (rupees, UPI AutoPay, India). On an organization that already subscribes, an explicit `method` in the other currency is a switch, not a second subscription: the link saves the new card or UPI AutoPay mandate (nothing is charged), and once that completes the same plan is moved to the new currency, first charged on the current renewal date (that month is already paid). The answer then carries `switch_to` and `first_charge_at`. A switch is refused (409) within two days of renewal, while the plan is set to cancel, while an upgrade waits on its UPI payment, and in the currency the plan already uses. 
      * Start a subscription checkout session
      */
     async createSubscriptionCheckout(requestParameters: CreateSubscriptionCheckoutRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SubscriptionCheckoutSession> {
@@ -437,7 +446,7 @@ export class BillingApi extends runtime.BaseAPI {
     }
 
     /**
-     * Returns the organization\'s shareable referral code and invite link (minting the code on first read), the program terms, the referrer\'s stats, and — when this organization itself signed up through someone else\'s link — its own progress toward the referee reward. Requires the `billing:read` scope. The organization is taken from the authenticated API key, never from a parameter.  The program: share the invite link; when a friend signs up through it and spends `qualify_spend_cents` on inference, the referrer receives `reward_cents` and the friend receives `referee_reward_cents`, both as non-withdrawable credit, after a `hold_days` chargeback hold. The terms ride on the wire so a client never hard-codes the amounts.  `referred` is ABSENT (not null) for an organization nobody referred — key on its presence. This is the same contract the dashboard\'s referral card reads. 
+     * Returns the organization\'s shareable referral code and invite link (minting the code on first read), the program terms, the referrer\'s stats, and — when this organization itself signed up through someone else\'s link — its own progress toward the referee reward. Requires the `billing:read` scope. The organization is taken from the authenticated API key, never from a parameter.  The program: share the invite link; when a friend signs up through it and spends `qualify_spend_cents` on inference, the referrer receives `reward_cents` and the friend receives `referee_reward_cents`, both as non-withdrawable credit, after a `hold_days` chargeback hold. The referrer also earns `commission_pct` percent of every real deposit the friend makes, credited as spend-only promotional credit when the deposit clears (`commission_earned_cents`). Program rewards never apply to the subscription. The terms ride on the wire so a client never hard-codes the amounts.  `referred` is ABSENT (not null) for an organization nobody referred — key on its presence. This is the same contract the dashboard\'s referral card reads. 
      * Get the org referral code, invite link, terms and stats
      */
     async getReferralRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Referral>> {
@@ -448,7 +457,7 @@ export class BillingApi extends runtime.BaseAPI {
     }
 
     /**
-     * Returns the organization\'s shareable referral code and invite link (minting the code on first read), the program terms, the referrer\'s stats, and — when this organization itself signed up through someone else\'s link — its own progress toward the referee reward. Requires the `billing:read` scope. The organization is taken from the authenticated API key, never from a parameter.  The program: share the invite link; when a friend signs up through it and spends `qualify_spend_cents` on inference, the referrer receives `reward_cents` and the friend receives `referee_reward_cents`, both as non-withdrawable credit, after a `hold_days` chargeback hold. The terms ride on the wire so a client never hard-codes the amounts.  `referred` is ABSENT (not null) for an organization nobody referred — key on its presence. This is the same contract the dashboard\'s referral card reads. 
+     * Returns the organization\'s shareable referral code and invite link (minting the code on first read), the program terms, the referrer\'s stats, and — when this organization itself signed up through someone else\'s link — its own progress toward the referee reward. Requires the `billing:read` scope. The organization is taken from the authenticated API key, never from a parameter.  The program: share the invite link; when a friend signs up through it and spends `qualify_spend_cents` on inference, the referrer receives `reward_cents` and the friend receives `referee_reward_cents`, both as non-withdrawable credit, after a `hold_days` chargeback hold. The referrer also earns `commission_pct` percent of every real deposit the friend makes, credited as spend-only promotional credit when the deposit clears (`commission_earned_cents`). Program rewards never apply to the subscription. The terms ride on the wire so a client never hard-codes the amounts.  `referred` is ABSENT (not null) for an organization nobody referred — key on its presence. This is the same contract the dashboard\'s referral card reads. 
      * Get the org referral code, invite link, terms and stats
      */
     async getReferral(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Referral> {
@@ -531,7 +540,7 @@ export class BillingApi extends runtime.BaseAPI {
     }
 
     /**
-     * Returns the organization\'s flat-tier subscription: whether it is entitled, the current billing period, the plan\'s configured quota, and — for an entitled subscription — consumption against the four limits the server enforces on every request. Requires the `billing:read` scope. The organization is taken from the authenticated API key, never from a parameter.  An organization that never subscribed is NOT an error. It gets 200 with `subscribed: false`, `status: \"none\"` and the quota the plan would provide, so a client can answer \"what does the plan include\" without a second endpoint and without an error path.  Read `subscribed`, not `status`, to decide whether the plan applies: `status` carries the billing provider\'s vocabulary, and the two can disagree — an `active` subscription just past its period end still entitles for a short grace window (renewal-webhook lag), while `past_due` and `canceled` never entitle.  `usage` is present only for an entitled subscription whose meter could be read. An absent `usage` NEVER means \"nothing used\" — reading it as zero would report a full quota to an organization that has none left.  This is the plan\'s meter. For pay-as-you-go credit see `/billing/balance`, for spend against a self-set cap see `/billing/spending-limit`, and for past consumption see `/usage`. 
+     * Returns the organization\'s subscription: whether it is entitled, the current billing period, the plan it is on and that plan\'s configured quota, and — for an entitled subscription — consumption against the limits the server enforces on every request. Requires the `billing:read` scope. The organization is taken from the authenticated API key, never from a parameter.  `plan` and `quota` describe the plan the organization IS on (the Base plan for an organization that never subscribed). `plans` lists every plan this deployment offers — Base, then Plus — each with its price and quota, so a client can render an upgrade offer without a second call.  An organization that never subscribed is NOT an error. It gets 200 with `subscribed: false`, `status: \"none\"` and the quota the Base plan would provide, so a client can answer \"what does the plan include\" without a second endpoint and without an error path.  Read `subscribed`, not `status`, to decide whether the plan applies: `status` carries the billing provider\'s vocabulary, and the two can disagree — an `active` subscription just past its period end still entitles for a short grace window (renewal-webhook lag), while `past_due` and `canceled` never entitle.  `usage` is present only for an entitled subscription whose meter could be read. An absent `usage` NEVER means \"nothing used\" — reading it as zero would report a full quota to an organization that has none left.  This is the plan\'s meter. For pay-as-you-go credit see `/billing/balance`, for spend against a self-set cap see `/billing/spending-limit`, and for past consumption see `/usage`. 
      * Get the org subscription status and quota usage
      */
     async getSubscriptionRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Subscription>> {
@@ -542,7 +551,7 @@ export class BillingApi extends runtime.BaseAPI {
     }
 
     /**
-     * Returns the organization\'s flat-tier subscription: whether it is entitled, the current billing period, the plan\'s configured quota, and — for an entitled subscription — consumption against the four limits the server enforces on every request. Requires the `billing:read` scope. The organization is taken from the authenticated API key, never from a parameter.  An organization that never subscribed is NOT an error. It gets 200 with `subscribed: false`, `status: \"none\"` and the quota the plan would provide, so a client can answer \"what does the plan include\" without a second endpoint and without an error path.  Read `subscribed`, not `status`, to decide whether the plan applies: `status` carries the billing provider\'s vocabulary, and the two can disagree — an `active` subscription just past its period end still entitles for a short grace window (renewal-webhook lag), while `past_due` and `canceled` never entitle.  `usage` is present only for an entitled subscription whose meter could be read. An absent `usage` NEVER means \"nothing used\" — reading it as zero would report a full quota to an organization that has none left.  This is the plan\'s meter. For pay-as-you-go credit see `/billing/balance`, for spend against a self-set cap see `/billing/spending-limit`, and for past consumption see `/usage`. 
+     * Returns the organization\'s subscription: whether it is entitled, the current billing period, the plan it is on and that plan\'s configured quota, and — for an entitled subscription — consumption against the limits the server enforces on every request. Requires the `billing:read` scope. The organization is taken from the authenticated API key, never from a parameter.  `plan` and `quota` describe the plan the organization IS on (the Base plan for an organization that never subscribed). `plans` lists every plan this deployment offers — Base, then Plus — each with its price and quota, so a client can render an upgrade offer without a second call.  An organization that never subscribed is NOT an error. It gets 200 with `subscribed: false`, `status: \"none\"` and the quota the Base plan would provide, so a client can answer \"what does the plan include\" without a second endpoint and without an error path.  Read `subscribed`, not `status`, to decide whether the plan applies: `status` carries the billing provider\'s vocabulary, and the two can disagree — an `active` subscription just past its period end still entitles for a short grace window (renewal-webhook lag), while `past_due` and `canceled` never entitle.  `usage` is present only for an entitled subscription whose meter could be read. An absent `usage` NEVER means \"nothing used\" — reading it as zero would report a full quota to an organization that has none left.  This is the plan\'s meter. For pay-as-you-go credit see `/billing/balance`, for spend against a self-set cap see `/billing/spending-limit`, and for past consumption see `/usage`. 
      * Get the org subscription status and quota usage
      */
     async getSubscription(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Subscription> {
@@ -651,6 +660,63 @@ export class BillingApi extends runtime.BaseAPI {
      */
     async updateSpendingLimit(requestParameters: UpdateSpendingLimitOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SpendingLimit> {
         const response = await this.updateSpendingLimitRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Creates request options for upgradeSubscription without sending the request
+     */
+    async upgradeSubscriptionRequestOpts(requestParameters: UpgradeSubscriptionRequest): Promise<runtime.RequestOpts> {
+        if (requestParameters['subscriptionUpgradeRequest'] == null) {
+            throw new runtime.RequiredError(
+                'subscriptionUpgradeRequest',
+                'Required parameter "subscriptionUpgradeRequest" was null or undefined when calling upgradeSubscription().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/billing/subscription/upgrade`;
+
+        return {
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: SubscriptionUpgradeRequestToJSON(requestParameters['subscriptionUpgradeRequest']),
+        };
+    }
+
+    /**
+     * Moves the organization\'s EXISTING subscription onto a bigger plan. Requires the `billing:write` scope AND organization-admin privileges — an upgrade charges the organization\'s card on file.  Unlike checkout, no hosted page is involved: the subscription\'s price is swapped, the new plan\'s FULL price is charged immediately (whenever in the cycle the upgrade happens), and a new billing period starts now. There is no credit for the unused remainder of the old plan\'s period, and the usage meters start from zero on the new plan because every quota window is summed over the current period. The response is the post-upgrade subscription, in the same shape as `/billing/subscription`.  `plan_key` is required and names the target plan (`plus`). The target must be bigger than the plan the organization is on: upgrading to the current plan or to a smaller one is a 409 `not_an_upgrade` — downgrades go through the billing portal. An organization with no entitling subscription gets 409 `not_subscribed` and should use checkout instead. A subscription already set to end at the period close is refused with 409 `subscription_cancelling` (the upgrade would start a new period and move that end date); resume it in the portal first.  If the charge cannot be collected (card declined, no payment method) the call is a 402 `payment_failed` and NOTHING changes — the organization stays on its current plan. Fix the card in the billing portal and retry. 
+     * Upgrade the subscription to a bigger plan
+     */
+    async upgradeSubscriptionRaw(requestParameters: UpgradeSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Subscription>> {
+        const requestOptions = await this.upgradeSubscriptionRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => SubscriptionFromJSON(jsonValue));
+    }
+
+    /**
+     * Moves the organization\'s EXISTING subscription onto a bigger plan. Requires the `billing:write` scope AND organization-admin privileges — an upgrade charges the organization\'s card on file.  Unlike checkout, no hosted page is involved: the subscription\'s price is swapped, the new plan\'s FULL price is charged immediately (whenever in the cycle the upgrade happens), and a new billing period starts now. There is no credit for the unused remainder of the old plan\'s period, and the usage meters start from zero on the new plan because every quota window is summed over the current period. The response is the post-upgrade subscription, in the same shape as `/billing/subscription`.  `plan_key` is required and names the target plan (`plus`). The target must be bigger than the plan the organization is on: upgrading to the current plan or to a smaller one is a 409 `not_an_upgrade` — downgrades go through the billing portal. An organization with no entitling subscription gets 409 `not_subscribed` and should use checkout instead. A subscription already set to end at the period close is refused with 409 `subscription_cancelling` (the upgrade would start a new period and move that end date); resume it in the portal first.  If the charge cannot be collected (card declined, no payment method) the call is a 402 `payment_failed` and NOTHING changes — the organization stays on its current plan. Fix the card in the billing portal and retry. 
+     * Upgrade the subscription to a bigger plan
+     */
+    async upgradeSubscription(requestParameters: UpgradeSubscriptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Subscription> {
+        const response = await this.upgradeSubscriptionRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

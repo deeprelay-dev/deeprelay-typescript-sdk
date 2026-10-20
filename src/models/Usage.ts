@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * deeprelay Public Developer API
- * Programmatic API for deeprelay. Authenticate with API keys minted from the dashboard. See https://deeprelay.ai/docs for details. 
+ * Programmatic API for deeprelay. Authenticate with API keys minted from the dashboard. See https://deeprelay.ai/docs for details.  Keys minted from the dashboard or `deeprelay login` belong to the Production server, https://api.deeprelay.ai/v1. The Demo server is an internal staging environment with its own key store.  Versioning: `/v1` is the API version. `info.version` is the revision of this `/v1` document, not a separate API.  OpenAI compatibility: chat completions follow the OpenAI request and response shapes, but not every OpenAI parameter is carried. Some are rejected with 400 `unsupported_parameter` and any parameter not declared in this spec is accepted and ignored. The full table is at https://deeprelay.ai/docs/api/inference#openai-compatibility. 
  *
  * The version of the OpenAPI document: 1.0.0
  * Contact: support@deeprelay.ai
@@ -13,6 +13,28 @@
  */
 
 import { mapValues } from '../runtime';
+import type { UsagePromptTokensDetails } from './UsagePromptTokensDetails';
+import {
+    UsagePromptTokensDetailsFromJSON,
+    UsagePromptTokensDetailsFromJSONTyped,
+    UsagePromptTokensDetailsToJSON,
+    UsagePromptTokensDetailsToJSONTyped,
+} from './UsagePromptTokensDetails';
+import type { UsageCompletionTokensDetails } from './UsageCompletionTokensDetails';
+import {
+    UsageCompletionTokensDetailsFromJSON,
+    UsageCompletionTokensDetailsFromJSONTyped,
+    UsageCompletionTokensDetailsToJSON,
+    UsageCompletionTokensDetailsToJSONTyped,
+} from './UsageCompletionTokensDetails';
+import type { CostDetails } from './CostDetails';
+import {
+    CostDetailsFromJSON,
+    CostDetailsFromJSONTyped,
+    CostDetailsToJSON,
+    CostDetailsToJSONTyped,
+} from './CostDetails';
+
 /**
  * 
  * @export
@@ -37,6 +59,31 @@ export interface Usage {
      * @memberof Usage
      */
     totalTokens: number;
+    /**
+     * 
+     * @type {UsagePromptTokensDetails}
+     * @memberof Usage
+     */
+    promptTokensDetails?: UsagePromptTokensDetails;
+    /**
+     * 
+     * @type {UsageCompletionTokensDetails}
+     * @memberof Usage
+     */
+    completionTokensDetails?: UsageCompletionTokensDetails;
+    /**
+     * The amount charged for this call in USD: equal to cost_details.charged_amount, so 0 for a call covered by the flat subscription. An exact decimal with up to 8 places, emitted as a JSON number. On a stream it appears only in the final usage chunk. Your invoice is computed from the billing ledger, which prices the call from the same breakdown.
+     * 
+     * @type {number}
+     * @memberof Usage
+     */
+    cost?: number;
+    /**
+     * 
+     * @type {CostDetails}
+     * @memberof Usage
+     */
+    costDetails?: CostDetails;
 }
 
 /**
@@ -62,6 +109,10 @@ export function UsageFromJSONTyped(json: any, ignoreDiscriminator: boolean): Usa
         'promptTokens': json['prompt_tokens'],
         'completionTokens': json['completion_tokens'],
         'totalTokens': json['total_tokens'],
+        'promptTokensDetails': json['prompt_tokens_details'] == null ? undefined : UsagePromptTokensDetailsFromJSON(json['prompt_tokens_details']),
+        'completionTokensDetails': json['completion_tokens_details'] == null ? undefined : UsageCompletionTokensDetailsFromJSON(json['completion_tokens_details']),
+        'cost': json['cost'] == null ? undefined : json['cost'],
+        'costDetails': json['cost_details'] == null ? undefined : CostDetailsFromJSON(json['cost_details']),
     };
 }
 
@@ -79,6 +130,10 @@ export function UsageToJSONTyped(value?: Usage | null, ignoreDiscriminator: bool
         'prompt_tokens': value['promptTokens'],
         'completion_tokens': value['completionTokens'],
         'total_tokens': value['totalTokens'],
+        'prompt_tokens_details': UsagePromptTokensDetailsToJSON(value['promptTokensDetails']),
+        'completion_tokens_details': UsageCompletionTokensDetailsToJSON(value['completionTokensDetails']),
+        'cost': value['cost'],
+        'cost_details': CostDetailsToJSON(value['costDetails']),
     };
 }
 

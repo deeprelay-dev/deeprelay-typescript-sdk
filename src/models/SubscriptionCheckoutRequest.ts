@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * deeprelay Public Developer API
- * Programmatic API for deeprelay. Authenticate with API keys minted from the dashboard. See https://deeprelay.ai/docs for details. 
+ * Programmatic API for deeprelay. Authenticate with API keys minted from the dashboard. See https://deeprelay.ai/docs for details.  Keys minted from the dashboard or `deeprelay login` belong to the Production server, https://api.deeprelay.ai/v1. The Demo server is an internal staging environment with its own key store.  Versioning: `/v1` is the API version. `info.version` is the revision of this `/v1` document, not a separate API.  OpenAI compatibility: chat completions follow the OpenAI request and response shapes, but not every OpenAI parameter is carried. Some are rejected with 400 `unsupported_parameter` and any parameter not declared in this spec is accepted and ignored. The full table is at https://deeprelay.ai/docs/api/inference#openai-compatibility. 
  *
  * The version of the OpenAPI document: 1.0.0
  * Contact: support@deeprelay.ai
@@ -21,24 +21,41 @@ import { mapValues } from '../runtime';
  */
 export interface SubscriptionCheckoutRequest {
     /**
-     * Where the provider returns after a completed payment. Defaults to the deployment's configured URL.
+     * Where the provider returns after a completed payment. Defaults to the deployment's configured URL. Must be on the deployment's dashboard origin, else 422 `validation_failed`.
      * @type {string}
      * @memberof SubscriptionCheckoutRequest
      */
     successUrl?: string;
     /**
-     * Where the provider returns if checkout is abandoned. Defaults to the deployment's configured URL.
+     * Where the provider returns if checkout is abandoned. Defaults to the deployment's configured URL. Must be on the deployment's dashboard origin, else 422 `validation_failed`.
      * @type {string}
      * @memberof SubscriptionCheckoutRequest
      */
     cancelUrl?: string;
     /**
-     * Pins the plan the client displayed. An unknown key is a 400 rather than a silent purchase of a different tier.
+     * The plan to buy — `flat` (Base, the default) or `plus`. Pins the plan the client displayed: an unknown or un-offered key is a 400 rather than a silent purchase of a different tier.
      * @type {string}
      * @memberof SubscriptionCheckoutRequest
      */
     planKey?: string;
+    /**
+     * `card` (dollars, card or Link; the default) or `upi` (rupees, UPI AutoPay). On a subscribed organization, the other currency's method switches the existing plan's billing.
+     * @type {SubscriptionCheckoutRequestMethodEnum}
+     * @memberof SubscriptionCheckoutRequest
+     */
+    method?: SubscriptionCheckoutRequestMethodEnum;
 }
+
+
+/**
+ * @export
+ */
+export const SubscriptionCheckoutRequestMethodEnum = {
+    Card: 'card',
+    Upi: 'upi'
+} as const;
+export type SubscriptionCheckoutRequestMethodEnum = typeof SubscriptionCheckoutRequestMethodEnum[keyof typeof SubscriptionCheckoutRequestMethodEnum];
+
 
 /**
  * Check if a given object implements the SubscriptionCheckoutRequest interface.
@@ -60,6 +77,7 @@ export function SubscriptionCheckoutRequestFromJSONTyped(json: any, ignoreDiscri
         'successUrl': json['success_url'] == null ? undefined : json['success_url'],
         'cancelUrl': json['cancel_url'] == null ? undefined : json['cancel_url'],
         'planKey': json['plan_key'] == null ? undefined : json['plan_key'],
+        'method': json['method'] == null ? undefined : json['method'],
     };
 }
 
@@ -77,6 +95,7 @@ export function SubscriptionCheckoutRequestToJSONTyped(value?: SubscriptionCheck
         'success_url': value['successUrl'],
         'cancel_url': value['cancelUrl'],
         'plan_key': value['planKey'],
+        'method': value['method'],
     };
 }
 

@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * deeprelay Public Developer API
- * Programmatic API for deeprelay. Authenticate with API keys minted from the dashboard. See https://deeprelay.ai/docs for details. 
+ * Programmatic API for deeprelay. Authenticate with API keys minted from the dashboard. See https://deeprelay.ai/docs for details.  Keys minted from the dashboard or `deeprelay login` belong to the Production server, https://api.deeprelay.ai/v1. The Demo server is an internal staging environment with its own key store.  Versioning: `/v1` is the API version. `info.version` is the revision of this `/v1` document, not a separate API.  OpenAI compatibility: chat completions follow the OpenAI request and response shapes, but not every OpenAI parameter is carried. Some are rejected with 400 `unsupported_parameter` and any parameter not declared in this spec is accepted and ignored. The full table is at https://deeprelay.ai/docs/api/inference#openai-compatibility. 
  *
  * The version of the OpenAPI document: 1.0.0
  * Contact: support@deeprelay.ai
@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
+import type { ModelMetrics } from './ModelMetrics';
+import {
+    ModelMetricsFromJSON,
+    ModelMetricsFromJSONTyped,
+    ModelMetricsToJSON,
+    ModelMetricsToJSONTyped,
+} from './ModelMetrics';
 import type { ModelPricing } from './ModelPricing';
 import {
     ModelPricingFromJSON,
@@ -47,13 +54,13 @@ export interface Model {
      */
     object: ModelObjectEnum;
     /**
-     * 
+     * Always present for OpenAI-client compatibility. Currently 0 for every model (the catalog carries no creation date); do not sort on it.
      * @type {number}
      * @memberof Model
      */
-    created?: number;
+    created: number;
     /**
-     * 
+     * The model's author (the same value as `author`), or "deeprelay" when the author is unknown.
      * @type {string}
      * @memberof Model
      */
@@ -77,17 +84,35 @@ export interface Model {
      */
     category?: string;
     /**
+     * The serving tier this entry prices: `serverless` or `economy` today, and more values may be added. A model served on both tiers appears twice: under its bare id for `serverless`, and under the `:economy`-suffixed id for `economy`. Send the id of the tier you want. Omitted on `coming_soon` placeholder entries.
+     * @type {string}
+     * @memberof Model
+     */
+    tier?: string;
+    /**
      * 
      * @type {number}
      * @memberof Model
      */
     contextLength?: number;
     /**
+     * The model's maximum output, in tokens, from the catalog. Omitted when the catalog lists none.
+     * @type {number}
+     * @memberof Model
+     */
+    maxCompletionTokens?: number;
+    /**
      * 
      * @type {Array<string>}
      * @memberof Model
      */
     supportedParameters?: Array<string>;
+    /**
+     * The `reasoning_effort` values this model accepts (for example `none`, `low`, `medium`, `high`), as the catalog lists them. Omitted when the catalog lists none.
+     * @type {Array<string>}
+     * @memberof Model
+     */
+    reasoningEfforts?: Array<string>;
     /**
      * Typed parameter descriptors for media (image/video) models — name, type, enum/bounds/default. Playgrounds render input forms from these.
      * @type {Array<ModelParametersInner>}
@@ -119,7 +144,19 @@ export interface Model {
      */
     fineTuneBaseModel?: string;
     /**
-     * Whether the flat subscription tier covers this model. A covered model rides the plan's quota while the subscription is entitled and has quota left; everything else bills pay-as-you-go at list rates, as does a covered model once the quota is spent. Absent means false.
+     * The Hugging Face repo that publishes this model's open weights, e.g. `meta-llama/Llama-3.3-70B-Instruct`. Send it as `base_model` to run the same model on a dedicated deployment. Absent when the weights are not public.
+     * @type {string}
+     * @memberof Model
+     */
+    hfRepo?: string;
+    /**
+     * How heavily this model draws on the subscription quota, ×1000: each token counts as usage_factor_milli / 1000 weighted tokens toward the quota (and in cost_details.quota_units_used). Omitted at the default 1000 (1.0×).
+     * @type {number}
+     * @memberof Model
+     */
+    usageFactorMilli?: number;
+    /**
+     * "Included in the flat subscription": whether the subscription tier covers this model. A model-level fact, the same for every caller. A covered model rides the plan's quota while the subscription is entitled and has quota left; everything else bills pay-as-you-go at list rates, as does a covered model once the quota is spent. Absent means false.
      * 
      * Coverage is a property of the platform, not of the caller: the flag reads the same for every organization, subscribed or not. Use `/billing/subscription` for what the caller's own plan has left.
      * @type {boolean}
@@ -127,11 +164,29 @@ export interface Model {
      */
     planCovered?: boolean;
     /**
+     * The audiences deeprelay recommends this model for. The only value today is `coding-agents`: models tested with coding agents, which `deeprelay setup <agent>` configures. More values may be added. Omitted on every model that is not recommended.
+     * @type {Array<string>}
+     * @memberof Model
+     */
+    recommendedFor?: Array<string>;
+    /**
+     * The model's position in the coding-agent list, 1 first. Present exactly when `recommended_for` contains `coding-agents`; a setup command makes the rank-1 model the default.
+     * @type {number}
+     * @memberof Model
+     */
+    codingAgentRank?: number;
+    /**
      * 
      * @type {ModelStatusEnum}
      * @memberof Model
      */
     status: ModelStatusEnum;
+    /**
+     * 
+     * @type {ModelMetrics}
+     * @memberof Model
+     */
+    metrics?: ModelMetrics;
 }
 
 
@@ -173,6 +228,7 @@ export function instanceOfModel(value: object): value is Model {
     if (!('object' in value) || value['object'] === undefined) return false;
     if (value['object'] !== 'model') return false;
     
+    if (!('created' in value) || value['created'] === undefined) return false;
     if ((!('ownedBy' in (value as Record<string, any>)) && !('owned_by' in (value as Record<string, any>))) || ((value as Record<string, any>)['ownedBy'] === undefined && (value as Record<string, any>)['owned_by'] === undefined)) return false;
     if (!('modality' in value) || value['modality'] === undefined) return false;
     if (!('pricing' in value) || value['pricing'] === undefined) return false;
@@ -192,20 +248,28 @@ export function ModelFromJSONTyped(json: any, ignoreDiscriminator: boolean): Mod
         
         'id': json['id'],
         'object': json['object'],
-        'created': json['created'] == null ? undefined : json['created'],
+        'created': json['created'],
         'ownedBy': json['owned_by'],
         'author': json['author'] == null ? undefined : json['author'],
         'modality': json['modality'],
         'category': json['category'] == null ? undefined : json['category'],
+        'tier': json['tier'] == null ? undefined : json['tier'],
         'contextLength': json['context_length'] == null ? undefined : json['context_length'],
+        'maxCompletionTokens': json['max_completion_tokens'] == null ? undefined : json['max_completion_tokens'],
         'supportedParameters': json['supported_parameters'] == null ? undefined : json['supported_parameters'],
+        'reasoningEfforts': json['reasoning_efforts'] == null ? undefined : json['reasoning_efforts'],
         'parameters': json['parameters'] == null ? undefined : ((json['parameters'] as Array<any>).map(ModelParametersInnerFromJSON)),
         'pricing': ModelPricingFromJSON(json['pricing']),
         'aliases': json['aliases'] == null ? undefined : json['aliases'],
         'fineTunable': json['fine_tunable'] == null ? undefined : json['fine_tunable'],
         'fineTuneBaseModel': json['fine_tune_base_model'] == null ? undefined : json['fine_tune_base_model'],
+        'hfRepo': json['hf_repo'] == null ? undefined : json['hf_repo'],
+        'usageFactorMilli': json['usage_factor_milli'] == null ? undefined : json['usage_factor_milli'],
         'planCovered': json['plan_covered'] == null ? undefined : json['plan_covered'],
+        'recommendedFor': json['recommended_for'] == null ? undefined : json['recommended_for'],
+        'codingAgentRank': json['coding_agent_rank'] == null ? undefined : json['coding_agent_rank'],
         'status': json['status'],
+        'metrics': json['metrics'] == null ? undefined : ModelMetricsFromJSON(json['metrics']),
     };
 }
 
@@ -227,15 +291,23 @@ export function ModelToJSONTyped(value?: Model | null, ignoreDiscriminator: bool
         'author': value['author'],
         'modality': value['modality'],
         'category': value['category'],
+        'tier': value['tier'],
         'context_length': value['contextLength'],
+        'max_completion_tokens': value['maxCompletionTokens'],
         'supported_parameters': value['supportedParameters'],
+        'reasoning_efforts': value['reasoningEfforts'],
         'parameters': value['parameters'] == null ? undefined : ((value['parameters'] as Array<any>).map(ModelParametersInnerToJSON)),
         'pricing': ModelPricingToJSON(value['pricing']),
         'aliases': value['aliases'],
         'fine_tunable': value['fineTunable'],
         'fine_tune_base_model': value['fineTuneBaseModel'],
+        'hf_repo': value['hfRepo'],
+        'usage_factor_milli': value['usageFactorMilli'],
         'plan_covered': value['planCovered'],
+        'recommended_for': value['recommendedFor'],
+        'coding_agent_rank': value['codingAgentRank'],
         'status': value['status'],
+        'metrics': ModelMetricsToJSON(value['metrics']),
     };
 }
 

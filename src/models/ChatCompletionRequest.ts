@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * deeprelay Public Developer API
- * Programmatic API for deeprelay. Authenticate with API keys minted from the dashboard. See https://deeprelay.ai/docs for details. 
+ * Programmatic API for deeprelay. Authenticate with API keys minted from the dashboard. See https://deeprelay.ai/docs for details.  Keys minted from the dashboard or `deeprelay login` belong to the Production server, https://api.deeprelay.ai/v1. The Demo server is an internal staging environment with its own key store.  Versioning: `/v1` is the API version. `info.version` is the revision of this `/v1` document, not a separate API.  OpenAI compatibility: chat completions follow the OpenAI request and response shapes, but not every OpenAI parameter is carried. Some are rejected with 400 `unsupported_parameter` and any parameter not declared in this spec is accepted and ignored. The full table is at https://deeprelay.ai/docs/api/inference#openai-compatibility. 
  *
  * The version of the OpenAPI document: 1.0.0
  * Contact: support@deeprelay.ai
@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
+import type { ChatCompletionRequestToolChoice } from './ChatCompletionRequestToolChoice';
+import {
+    ChatCompletionRequestToolChoiceFromJSON,
+    ChatCompletionRequestToolChoiceFromJSONTyped,
+    ChatCompletionRequestToolChoiceToJSON,
+    ChatCompletionRequestToolChoiceToJSONTyped,
+} from './ChatCompletionRequestToolChoice';
 import type { ChatMessage } from './ChatMessage';
 import {
     ChatMessageFromJSON,
@@ -27,6 +34,20 @@ import {
     StreamOptionsToJSON,
     StreamOptionsToJSONTyped,
 } from './StreamOptions';
+import type { ChatCompletionRequestResponseFormat } from './ChatCompletionRequestResponseFormat';
+import {
+    ChatCompletionRequestResponseFormatFromJSON,
+    ChatCompletionRequestResponseFormatFromJSONTyped,
+    ChatCompletionRequestResponseFormatToJSON,
+    ChatCompletionRequestResponseFormatToJSONTyped,
+} from './ChatCompletionRequestResponseFormat';
+import type { Tool } from './Tool';
+import {
+    ToolFromJSON,
+    ToolFromJSONTyped,
+    ToolToJSON,
+    ToolToJSONTyped,
+} from './Tool';
 
 /**
  * 
@@ -35,7 +56,7 @@ import {
  */
 export interface ChatCompletionRequest {
     /**
-     * Canonical model id, e.g. "deeprelay/qwen2.5-7b-instruct".
+     * Canonical model id, e.g. "deeprelay/llama-3.3-70b-instruct".
      * @type {string}
      * @memberof ChatCompletionRequest
      */
@@ -59,6 +80,13 @@ export interface ChatCompletionRequest {
      */
     maxTokens?: number;
     /**
+     * OpenAI's newer name for max_tokens, accepted for client compatibility. When both are sent, max_tokens wins.
+     * 
+     * @type {number}
+     * @memberof ChatCompletionRequest
+     */
+    maxCompletionTokens?: number;
+    /**
      * 
      * @type {boolean}
      * @memberof ChatCompletionRequest
@@ -70,6 +98,72 @@ export interface ChatCompletionRequest {
      * @memberof ChatCompletionRequest
      */
     streamOptions?: StreamOptions;
+    /**
+     * Functions the model may call. Support is per-model — check for "tools" in the model's supported_parameters before sending it. Omit the field entirely rather than sending an empty array.
+     * 
+     * @type {Array<Tool>}
+     * @memberof ChatCompletionRequest
+     */
+    tools?: Array<Tool>;
+    /**
+     * 
+     * @type {ChatCompletionRequestToolChoice}
+     * @memberof ChatCompletionRequest
+     */
+    toolChoice?: ChatCompletionRequestToolChoice;
+    /**
+     * 
+     * @type {ChatCompletionRequestResponseFormat}
+     * @memberof ChatCompletionRequest
+     */
+    responseFormat?: ChatCompletionRequestResponseFormat;
+    /**
+     * Hint: how much a reasoning model should think. Values in use are none, minimal, low, medium, high and xhigh; which ones a model accepts varies. Forwarded to an upstream that accepts the value, otherwise dropped and reported in x-deeprelay-ignored-params. Never rejected.
+     * 
+     * @type {string}
+     * @memberof ChatCompletionRequest
+     */
+    reasoningEffort?: string;
+    /**
+     * Hint. Forwarded when the serving upstream accepts it, otherwise dropped and reported in x-deeprelay-ignored-params.
+     * @type {number}
+     * @memberof ChatCompletionRequest
+     */
+    presencePenalty?: number;
+    /**
+     * Hint. Forwarded when the serving upstream accepts it, otherwise dropped and reported in x-deeprelay-ignored-params.
+     * @type {number}
+     * @memberof ChatCompletionRequest
+     */
+    frequencyPenalty?: number;
+    /**
+     * Hint for best-effort determinism. Forwarded when the serving upstream accepts it, otherwise dropped and reported. Identical seeds are not guaranteed to give identical output across upstreams.
+     * 
+     * @type {number}
+     * @memberof ChatCompletionRequest
+     */
+    seed?: number;
+    /**
+     * Whether the model may emit several tool calls in one turn. When false and the serving upstream cannot honour it, the relay returns only the first tool call and reports `parallel_tool_calls:enforced` in x-deeprelay-ignored-params.
+     * 
+     * @type {boolean}
+     * @memberof ChatCompletionRequest
+     */
+    parallelToolCalls?: boolean;
+    /**
+     * Return per-token log probabilities in choices[].logprobs. Gated per model ("logprobs" in supported_parameters). Values come from the serving upstream and are not comparable across upstreams or numeric precisions.
+     * 
+     * @type {boolean}
+     * @memberof ChatCompletionRequest
+     */
+    logprobs?: boolean;
+    /**
+     * Number of alternatives per token (requires logprobs). Gated per model; each model has its own maximum, and a larger value returns 400 unsupported_parameter.
+     * 
+     * @type {number}
+     * @memberof ChatCompletionRequest
+     */
+    topLogprobs?: number;
 }
 
 /**
@@ -95,8 +189,19 @@ export function ChatCompletionRequestFromJSONTyped(json: any, ignoreDiscriminato
         'messages': ((json['messages'] as Array<any>).map(ChatMessageFromJSON)),
         'temperature': json['temperature'] == null ? undefined : json['temperature'],
         'maxTokens': json['max_tokens'] == null ? undefined : json['max_tokens'],
+        'maxCompletionTokens': json['max_completion_tokens'] == null ? undefined : json['max_completion_tokens'],
         'stream': json['stream'] == null ? undefined : json['stream'],
         'streamOptions': json['stream_options'] == null ? undefined : StreamOptionsFromJSON(json['stream_options']),
+        'tools': json['tools'] == null ? undefined : ((json['tools'] as Array<any>).map(ToolFromJSON)),
+        'toolChoice': json['tool_choice'] == null ? undefined : ChatCompletionRequestToolChoiceFromJSON(json['tool_choice']),
+        'responseFormat': json['response_format'] == null ? undefined : ChatCompletionRequestResponseFormatFromJSON(json['response_format']),
+        'reasoningEffort': json['reasoning_effort'] == null ? undefined : json['reasoning_effort'],
+        'presencePenalty': json['presence_penalty'] == null ? undefined : json['presence_penalty'],
+        'frequencyPenalty': json['frequency_penalty'] == null ? undefined : json['frequency_penalty'],
+        'seed': json['seed'] == null ? undefined : json['seed'],
+        'parallelToolCalls': json['parallel_tool_calls'] == null ? undefined : json['parallel_tool_calls'],
+        'logprobs': json['logprobs'] == null ? undefined : json['logprobs'],
+        'topLogprobs': json['top_logprobs'] == null ? undefined : json['top_logprobs'],
     };
 }
 
@@ -115,8 +220,19 @@ export function ChatCompletionRequestToJSONTyped(value?: ChatCompletionRequest |
         'messages': ((value['messages'] as Array<any>).map(ChatMessageToJSON)),
         'temperature': value['temperature'],
         'max_tokens': value['maxTokens'],
+        'max_completion_tokens': value['maxCompletionTokens'],
         'stream': value['stream'],
         'stream_options': StreamOptionsToJSON(value['streamOptions']),
+        'tools': value['tools'] == null ? undefined : ((value['tools'] as Array<any>).map(ToolToJSON)),
+        'tool_choice': ChatCompletionRequestToolChoiceToJSON(value['toolChoice']),
+        'response_format': ChatCompletionRequestResponseFormatToJSON(value['responseFormat']),
+        'reasoning_effort': value['reasoningEffort'],
+        'presence_penalty': value['presencePenalty'],
+        'frequency_penalty': value['frequencyPenalty'],
+        'seed': value['seed'],
+        'parallel_tool_calls': value['parallelToolCalls'],
+        'logprobs': value['logprobs'],
+        'top_logprobs': value['topLogprobs'],
     };
 }
 

@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * deeprelay Public Developer API
- * Programmatic API for deeprelay. Authenticate with API keys minted from the dashboard. See https://deeprelay.ai/docs for details. 
+ * Programmatic API for deeprelay. Authenticate with API keys minted from the dashboard. See https://deeprelay.ai/docs for details.  Keys minted from the dashboard or `deeprelay login` belong to the Production server, https://api.deeprelay.ai/v1. The Demo server is an internal staging environment with its own key store.  Versioning: `/v1` is the API version. `info.version` is the revision of this `/v1` document, not a separate API.  OpenAI compatibility: chat completions follow the OpenAI request and response shapes, but not every OpenAI parameter is carried. Some are rejected with 400 `unsupported_parameter` and any parameter not declared in this spec is accepted and ignored. The full table is at https://deeprelay.ai/docs/api/inference#openai-compatibility. 
  *
  * The version of the OpenAPI document: 1.0.0
  * Contact: support@deeprelay.ai
@@ -20,6 +20,13 @@ import {
     SubscriptionPlanToJSON,
     SubscriptionPlanToJSONTyped,
 } from './SubscriptionPlan';
+import type { SubscriptionTier } from './SubscriptionTier';
+import {
+    SubscriptionTierFromJSON,
+    SubscriptionTierFromJSONTyped,
+    SubscriptionTierToJSON,
+    SubscriptionTierToJSONTyped,
+} from './SubscriptionTier';
 import type { SubscriptionUsage } from './SubscriptionUsage';
 import {
     SubscriptionUsageFromJSON,
@@ -36,7 +43,7 @@ import {
 } from './SubscriptionQuota';
 
 /**
- * The organization's flat subscription tier: entitlement, billing period, the configured quota, and consumption against it. The console and this endpoint assemble it from the same source, so the two surfaces cannot report different numbers.
+ * The organization's subscription: entitlement, billing period, the plan it is on with that plan's configured quota, consumption against it, and the plans this deployment offers. The console and this endpoint assemble it from the same source, so the two surfaces cannot report different numbers.
  * 
  * @export
  * @interface Subscription
@@ -90,6 +97,12 @@ export interface Subscription {
      * @memberof Subscription
      */
     usage?: SubscriptionUsage;
+    /**
+     * Every plan this deployment offers, smallest first (Base, then Plus when it is configured), each with its price and quota. The keys are the accepted `plan_key` values for checkout and upgrade. Empty when nothing can be bought here.
+     * @type {Array<SubscriptionTier>}
+     * @memberof Subscription
+     */
+    plans: Array<SubscriptionTier>;
 }
 
 /**
@@ -101,6 +114,7 @@ export function instanceOfSubscription(value: object): value is Subscription {
     if ((!('cancelAtPeriodEnd' in (value as Record<string, any>)) && !('cancel_at_period_end' in (value as Record<string, any>))) || ((value as Record<string, any>)['cancelAtPeriodEnd'] === undefined && (value as Record<string, any>)['cancel_at_period_end'] === undefined)) return false;
     if (!('plan' in value) || value['plan'] === undefined) return false;
     if (!('quota' in value) || value['quota'] === undefined) return false;
+    if (!('plans' in value) || value['plans'] === undefined) return false;
     return true;
 }
 
@@ -122,6 +136,7 @@ export function SubscriptionFromJSONTyped(json: any, ignoreDiscriminator: boolea
         'plan': SubscriptionPlanFromJSON(json['plan']),
         'quota': SubscriptionQuotaFromJSON(json['quota']),
         'usage': json['usage'] == null ? undefined : SubscriptionUsageFromJSON(json['usage']),
+        'plans': ((json['plans'] as Array<any>).map(SubscriptionTierFromJSON)),
     };
 }
 
@@ -144,6 +159,7 @@ export function SubscriptionToJSONTyped(value?: Subscription | null, ignoreDiscr
         'plan': SubscriptionPlanToJSON(value['plan']),
         'quota': SubscriptionQuotaToJSON(value['quota']),
         'usage': SubscriptionUsageToJSON(value['usage']),
+        'plans': ((value['plans'] as Array<any>).map(SubscriptionTierToJSON)),
     };
 }
 

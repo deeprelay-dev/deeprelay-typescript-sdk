@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * deeprelay Public Developer API
- * Programmatic API for deeprelay. Authenticate with API keys minted from the dashboard. See https://deeprelay.ai/docs for details. 
+ * Programmatic API for deeprelay. Authenticate with API keys minted from the dashboard. See https://deeprelay.ai/docs for details.  Keys minted from the dashboard or `deeprelay login` belong to the Production server, https://api.deeprelay.ai/v1. The Demo server is an internal staging environment with its own key store.  Versioning: `/v1` is the API version. `info.version` is the revision of this `/v1` document, not a separate API.  OpenAI compatibility: chat completions follow the OpenAI request and response shapes, but not every OpenAI parameter is carried. Some are rejected with 400 `unsupported_parameter` and any parameter not declared in this spec is accepted and ignored. The full table is at https://deeprelay.ai/docs/api/inference#openai-compatibility. 
  *
  * The version of the OpenAPI document: 1.0.0
  * Contact: support@deeprelay.ai
@@ -40,11 +40,19 @@ export interface ChatChoice {
      */
     message?: ChatMessage;
     /**
+     * tool_calls appears only when the request carried tools and the model made a call, which requires a model that lists "tools" in its supported_parameters.
      * 
      * @type {ChatChoiceFinishReasonEnum}
      * @memberof ChatChoice
      */
     finishReason?: ChatChoiceFinishReasonEnum;
+    /**
+     * Per-token log probabilities (OpenAI shape, `content` array) when the request set logprobs: true, passed through from the serving upstream. Not comparable across upstreams or numeric precisions.
+     * 
+     * @type {{ [key: string]: any; }}
+     * @memberof ChatChoice
+     */
+    logprobs?: { [key: string]: any; };
 }
 
 
@@ -80,6 +88,7 @@ export function ChatChoiceFromJSONTyped(json: any, ignoreDiscriminator: boolean)
         'index': json['index'] == null ? undefined : json['index'],
         'message': json['message'] == null ? undefined : ChatMessageFromJSON(json['message']),
         'finishReason': json['finish_reason'] == null ? undefined : json['finish_reason'],
+        'logprobs': json['logprobs'] == null ? undefined : json['logprobs'],
     };
 }
 
@@ -97,6 +106,7 @@ export function ChatChoiceToJSONTyped(value?: ChatChoice | null, ignoreDiscrimin
         'index': value['index'],
         'message': ChatMessageToJSON(value['message']),
         'finish_reason': value['finishReason'],
+        'logprobs': value['logprobs'],
     };
 }
 

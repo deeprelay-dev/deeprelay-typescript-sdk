@@ -83,20 +83,22 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | A video generation job object. |  -  |
-| **401** | Missing or invalid API key (OpenAI error envelope). |  -  |
-| **403** | API key lacks the required scope (OpenAI error envelope). |  -  |
-| **404** | Model or resource not found (OpenAI error envelope). |  -  |
-| **409** | Invalid request (OpenAI error envelope). |  -  |
-| **429** | Rate limit exceeded (OpenAI error envelope). Retry-After header indicates seconds to wait. |  * Retry-After - Seconds the client should wait before retrying. <br>  |
+| **401** | Missing or invalid API key (OpenAI error envelope). |  * X-Deeprelay-Error-Code -  <br>  |
+| **403** | API key lacks the required scope (&#x60;insufficient_scope&#x60;), or the key has a model allowlist that does not include the requested model (&#x60;model_not_allowed_for_key&#x60;; also the answer for a model that does not exist, so a restricted key cannot probe the catalog). OpenAI error envelope. |  * X-Deeprelay-Error-Code -  <br>  |
+| **404** | Model or resource not found (OpenAI error envelope). |  * X-Deeprelay-Error-Code -  <br>  |
+| **409** | Invalid request (OpenAI error envelope). |  * X-Deeprelay-Error-Code -  <br>  |
+| **429** | Rate limit or subscription quota exceeded (OpenAI error envelope). A per-key or per-IP rate limit (&#x60;rate_limit_exceeded&#x60;) carries Retry-After, the whole seconds to wait, rounded up (minimum 1), and retry-after-ms, the exact wait; both are the time until one request is allowed, not a full refill. A per-key denial also carries the x-ratelimit-*-requests headers. A subscription quota denial (&#x60;subscription_quota_exhausted&#x60;, raised only when the wallet cannot cover the pay-as-you-go fallback) carries &#x60;x-should-retry: false&#x60; and no Retry-After. When the tripped gate is a rolling 7-day cap (&#x60;param: weekly_input_tokens&#x60; or &#x60;param: weekly_output_tokens&#x60;), the error object also carries &#x60;quota_frees_at&#x60;, the RFC 3339 time the window frees enough capacity — the earlier of the two windows. &#x60;param&#x60; names the tripped gate: monthly_input_tokens, monthly_output_tokens, weekly_input_tokens, weekly_output_tokens, max_usage, input_overshoot (this request\&#39;s estimated input alone exceeds what is left in the tighter of the monthly and rolling 7-day input allowances), or output_overshoot (the same for the estimated output — the completion bound). On an overshoot the quota is not exhausted — send a smaller request (or a smaller max_tokens) or add credits. |  * Retry-After - Seconds the client should wait before retrying. <br>  * retry-after-ms -  <br>  * x-ratelimit-limit-requests -  <br>  * x-ratelimit-remaining-requests -  <br>  * x-ratelimit-reset-requests -  <br>  * x-should-retry -  <br>  * X-Deeprelay-Error-Code -  <br>  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 
 ## createChatCompletion
 
-> ChatCompletionResponse createChatCompletion(chatCompletionRequest)
+> ChatCompletionResponse createChatCompletion(chatCompletionRequest, xClientRequestId)
 
 Create a chat completion (OpenAI-compatible)
+
+OpenAI-compatible chat completion. Parameters fall into three groups:  - **Semantic parameters are gated per model.** &#x60;response_format&#x60;,   &#x60;tools&#x60;/&#x60;tool_choice&#x60;, &#x60;logprobs&#x60;/&#x60;top_logprobs&#x60; and &#x60;image_url&#x60;   content parts are sent only to a model whose &#x60;/v1/models&#x60; entry   lists the capability in &#x60;supported_parameters&#x60; (&#x60;vision&#x60; for   images). A model without it returns 400 &#x60;unsupported_parameter&#x60;   whose message names the models that do support it. When the model   supports the parameter but none of its currently routable upstreams   does, the request fails with 503 &#x60;upstream_unavailable&#x60; rather than   being silently degraded. - **Hints are forwarded or dropped, never rejected.**   &#x60;reasoning_effort&#x60;, &#x60;presence_penalty&#x60;, &#x60;frequency_penalty&#x60;, &#x60;seed&#x60;   and &#x60;parallel_tool_calls&#x60; are forwarded to an upstream that accepts   them and otherwise dropped. Every drop is reported in the   &#x60;x-deeprelay-ignored-params&#x60; response header. - **Rejected everywhere.** &#x60;logit_bias&#x60; and &#x60;function_call&#x60; return   400 &#x60;unsupported_parameter&#x60;; &#x60;input_audio&#x60; and &#x60;file&#x60; content parts   return 400 &#x60;unsupported_content_part&#x60;.  A non-strict &#x60;json_schema&#x60; sent to a model that can only guarantee JSON is served as &#x60;json_object&#x60; and reported as &#x60;response_format:downgraded&#x60;; a strict one is rejected. A &#x60;json_schema&#x60; over 64 KiB or nested deeper than 32 levels returns 400 &#x60;unsupported_parameter&#x60; (param &#x60;response_format&#x60;). An upstream rejection of a request the relay accepted returns 400 &#x60;upstream_rejected_request&#x60;. A non-chat model id returns 404 &#x60;model_not_found&#x60;. The request body is capped at 32 MiB (413 &#x60;request_too_large&#x60;).  Every successful response carries &#x60;usage.cost&#x60; and &#x60;usage.cost_details&#x60; (on a stream, only in the final usage chunk). See https://deeprelay.ai/docs/api/inference#openai-compatibility. 
 
 ### Example
 
@@ -118,6 +120,8 @@ async function example() {
   const body = {
     // ChatCompletionRequest
     chatCompletionRequest: ...,
+    // string | Your own correlation id for this call, up to 128 characters. It is stored on the request-log row as `client_request_id` and can be filtered on with `GET /requests?client_request_id=`. When it is absent, an inbound `X-Request-Id` is kept in its place; the response\'s own `X-Request-Id` is always minted by deeprelay. Surrounding whitespace and control characters are removed; a longer value is dropped, never truncated. It is never used as a lookup key, so it does not need to be unique. (optional)
+    xClientRequestId: xClientRequestId_example,
   } satisfies CreateChatCompletionRequest;
 
   try {
@@ -138,6 +142,7 @@ example().catch(console.error);
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
 | **chatCompletionRequest** | [ChatCompletionRequest](ChatCompletionRequest.md) |  | |
+| **xClientRequestId** | `string` | Your own correlation id for this call, up to 128 characters. It is stored on the request-log row as &#x60;client_request_id&#x60; and can be filtered on with &#x60;GET /requests?client_request_id&#x3D;&#x60;. When it is absent, an inbound &#x60;X-Request-Id&#x60; is kept in its place; the response\&#39;s own &#x60;X-Request-Id&#x60; is always minted by deeprelay. Surrounding whitespace and control characters are removed; a longer value is dropped, never truncated. It is never used as a lookup key, so it does not need to be unique. | [Optional] [Defaults to `undefined`] |
 
 ### Return type
 
@@ -156,23 +161,24 @@ example().catch(console.error);
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-| **200** | Successful response. application/json for non-streaming requests; text/event-stream for streaming requests (stream&#x3D;true).  |  -  |
-| **400** | Invalid request (OpenAI error envelope). |  -  |
-| **401** | Missing or invalid API key (OpenAI error envelope). |  -  |
-| **402** | Insufficient balance (OpenAI error envelope, SERV-06). |  -  |
-| **403** | API key lacks the required scope (OpenAI error envelope). |  -  |
-| **404** | Model or resource not found (OpenAI error envelope). |  -  |
-| **422** | Request validation failed (OpenAI error envelope). |  -  |
-| **429** | Rate limit exceeded (OpenAI error envelope). Retry-After header indicates seconds to wait. |  * Retry-After - Seconds the client should wait before retrying. <br>  |
-| **500** | Internal server error (OpenAI error envelope). |  -  |
-| **503** | Upstream provider unavailable (OpenAI error envelope). Retry-After header may indicate seconds to wait. |  * Retry-After - Seconds the client should wait before retrying. <br>  |
+| **200** | Successful response. application/json for non-streaming requests; text/event-stream for streaming requests (stream&#x3D;true).  |  * x-deeprelay-ignored-params -  <br>  * x-deeprelay-cost -  <br>  * x-deeprelay-quota-input-remaining -  <br>  * x-deeprelay-quota-output-remaining -  <br>  * x-deeprelay-quota-reset -  <br>  * x-deeprelay-quota-weekly-input-remaining -  <br>  * x-deeprelay-quota-weekly-input-limit -  <br>  * x-deeprelay-quota-weekly-output-remaining -  <br>  * x-deeprelay-quota-weekly-output-limit -  <br>  * x-ratelimit-limit-requests -  <br>  * x-ratelimit-remaining-requests -  <br>  * x-ratelimit-reset-requests -  <br>  |
+| **400** | Invalid request (OpenAI error envelope). |  * X-Deeprelay-Error-Code -  <br>  |
+| **401** | Missing or invalid API key (OpenAI error envelope). |  * X-Deeprelay-Error-Code -  <br>  |
+| **402** | Insufficient balance or a spend limit reached (OpenAI error envelope, SERV-06): &#x60;insufficient_balance&#x60;, &#x60;daily_limit_reached&#x60;, &#x60;spending_limit_reached&#x60;, &#x60;api_key_budget_exceeded&#x60; (this API key\&#39;s monthly budget) or &#x60;member_spend_limit_reached&#x60; (the member\&#39;s monthly spend limit). Carries &#x60;x-should-retry: false&#x60;: the same request will not succeed until the wallet or the limit changes. |  * x-should-retry -  <br>  * X-Deeprelay-Error-Code -  <br>  |
+| **403** | API key lacks the required scope (&#x60;insufficient_scope&#x60;), or the key has a model allowlist that does not include the requested model (&#x60;model_not_allowed_for_key&#x60;; also the answer for a model that does not exist, so a restricted key cannot probe the catalog). OpenAI error envelope. |  * X-Deeprelay-Error-Code -  <br>  |
+| **404** | Model or resource not found (OpenAI error envelope). |  * X-Deeprelay-Error-Code -  <br>  |
+| **413** | Request body too large (OpenAI error envelope, code request_too_large). |  * X-Deeprelay-Error-Code -  <br>  |
+| **422** | Request validation failed (OpenAI error envelope). |  * X-Deeprelay-Error-Code -  <br>  |
+| **429** | Rate limit or subscription quota exceeded (OpenAI error envelope). A per-key or per-IP rate limit (&#x60;rate_limit_exceeded&#x60;) carries Retry-After, the whole seconds to wait, rounded up (minimum 1), and retry-after-ms, the exact wait; both are the time until one request is allowed, not a full refill. A per-key denial also carries the x-ratelimit-*-requests headers. A subscription quota denial (&#x60;subscription_quota_exhausted&#x60;, raised only when the wallet cannot cover the pay-as-you-go fallback) carries &#x60;x-should-retry: false&#x60; and no Retry-After. When the tripped gate is a rolling 7-day cap (&#x60;param: weekly_input_tokens&#x60; or &#x60;param: weekly_output_tokens&#x60;), the error object also carries &#x60;quota_frees_at&#x60;, the RFC 3339 time the window frees enough capacity — the earlier of the two windows. &#x60;param&#x60; names the tripped gate: monthly_input_tokens, monthly_output_tokens, weekly_input_tokens, weekly_output_tokens, max_usage, input_overshoot (this request\&#39;s estimated input alone exceeds what is left in the tighter of the monthly and rolling 7-day input allowances), or output_overshoot (the same for the estimated output — the completion bound). On an overshoot the quota is not exhausted — send a smaller request (or a smaller max_tokens) or add credits. |  * Retry-After - Seconds the client should wait before retrying. <br>  * retry-after-ms -  <br>  * x-ratelimit-limit-requests -  <br>  * x-ratelimit-remaining-requests -  <br>  * x-ratelimit-reset-requests -  <br>  * x-should-retry -  <br>  * X-Deeprelay-Error-Code -  <br>  |
+| **500** | Internal server error (OpenAI error envelope). |  * X-Deeprelay-Error-Code -  <br>  |
+| **503** | No upstream could serve the request (OpenAI error envelope, &#x60;upstream_unavailable&#x60;): every capable upstream is down, shedding load, or none of the model\&#39;s routable upstreams supports a capability the request needs. Always carries Retry-After (whole seconds, rounded up) and retry-after-ms; on an overload the wait is jittered between 2 and 2.5 seconds. |  * Retry-After - Seconds the client should wait before retrying. <br>  * retry-after-ms -  <br>  * X-Deeprelay-Error-Code -  <br>  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 
 ## createEmbeddings
 
-> EmbeddingsResponse createEmbeddings(embeddingsRequest)
+> EmbeddingsResponse createEmbeddings(embeddingsRequest, xClientRequestId)
 
 Create embeddings (OpenAI-compatible)
 
@@ -198,6 +204,8 @@ async function example() {
   const body = {
     // EmbeddingsRequest
     embeddingsRequest: ...,
+    // string | Your own correlation id for this call, up to 128 characters. It is stored on the request-log row as `client_request_id` and can be filtered on with `GET /requests?client_request_id=`. When it is absent, an inbound `X-Request-Id` is kept in its place; the response\'s own `X-Request-Id` is always minted by deeprelay. Surrounding whitespace and control characters are removed; a longer value is dropped, never truncated. It is never used as a lookup key, so it does not need to be unique. (optional)
+    xClientRequestId: xClientRequestId_example,
   } satisfies CreateEmbeddingsRequest;
 
   try {
@@ -218,6 +226,7 @@ example().catch(console.error);
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
 | **embeddingsRequest** | [EmbeddingsRequest](EmbeddingsRequest.md) |  | |
+| **xClientRequestId** | `string` | Your own correlation id for this call, up to 128 characters. It is stored on the request-log row as &#x60;client_request_id&#x60; and can be filtered on with &#x60;GET /requests?client_request_id&#x3D;&#x60;. When it is absent, an inbound &#x60;X-Request-Id&#x60; is kept in its place; the response\&#39;s own &#x60;X-Request-Id&#x60; is always minted by deeprelay. Surrounding whitespace and control characters are removed; a longer value is dropped, never truncated. It is never used as a lookup key, so it does not need to be unique. | [Optional] [Defaults to `undefined`] |
 
 ### Return type
 
@@ -237,24 +246,24 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | One embedding vector per input, in request order. |  -  |
-| **400** | Invalid request (OpenAI error envelope). |  -  |
-| **401** | Missing or invalid API key (OpenAI error envelope). |  -  |
-| **402** | Insufficient balance (OpenAI error envelope, SERV-06). |  -  |
-| **403** | API key lacks the required scope (OpenAI error envelope). |  -  |
-| **404** | Model or resource not found (OpenAI error envelope). |  -  |
-| **413** | Request body too large (OpenAI error envelope, code request_too_large). |  -  |
-| **429** | Rate limit exceeded (OpenAI error envelope). Retry-After header indicates seconds to wait. |  * Retry-After - Seconds the client should wait before retrying. <br>  |
-| **500** | Internal server error (OpenAI error envelope). |  -  |
-| **502** | The upstream answered but its response could not be used (OpenAI error envelope): code upstream_response_too_large when the vector payload exceeded the per-request size limit, or upstream_error for a malformed / misaligned response. Not retryable as-is for upstream_response_too_large — send fewer inputs. |  -  |
-| **503** | Upstream provider unavailable (OpenAI error envelope). Retry-After header may indicate seconds to wait. |  * Retry-After - Seconds the client should wait before retrying. <br>  |
-| **504** | Upstream provider exceeded the synchronous per-attempt deadline (OpenAI error envelope). 504 semantic — distinct from 503 OpenAIUpstreamUnavailable which signals a connection or routing failure rather than a timeout.  |  -  |
+| **400** | Invalid request (OpenAI error envelope). |  * X-Deeprelay-Error-Code -  <br>  |
+| **401** | Missing or invalid API key (OpenAI error envelope). |  * X-Deeprelay-Error-Code -  <br>  |
+| **402** | Insufficient balance or a spend limit reached (OpenAI error envelope, SERV-06): &#x60;insufficient_balance&#x60;, &#x60;daily_limit_reached&#x60;, &#x60;spending_limit_reached&#x60;, &#x60;api_key_budget_exceeded&#x60; (this API key\&#39;s monthly budget) or &#x60;member_spend_limit_reached&#x60; (the member\&#39;s monthly spend limit). Carries &#x60;x-should-retry: false&#x60;: the same request will not succeed until the wallet or the limit changes. |  * x-should-retry -  <br>  * X-Deeprelay-Error-Code -  <br>  |
+| **403** | API key lacks the required scope (&#x60;insufficient_scope&#x60;), or the key has a model allowlist that does not include the requested model (&#x60;model_not_allowed_for_key&#x60;; also the answer for a model that does not exist, so a restricted key cannot probe the catalog). OpenAI error envelope. |  * X-Deeprelay-Error-Code -  <br>  |
+| **404** | Model or resource not found (OpenAI error envelope). |  * X-Deeprelay-Error-Code -  <br>  |
+| **413** | Request body too large (OpenAI error envelope, code request_too_large). |  * X-Deeprelay-Error-Code -  <br>  |
+| **429** | Rate limit or subscription quota exceeded (OpenAI error envelope). A per-key or per-IP rate limit (&#x60;rate_limit_exceeded&#x60;) carries Retry-After, the whole seconds to wait, rounded up (minimum 1), and retry-after-ms, the exact wait; both are the time until one request is allowed, not a full refill. A per-key denial also carries the x-ratelimit-*-requests headers. A subscription quota denial (&#x60;subscription_quota_exhausted&#x60;, raised only when the wallet cannot cover the pay-as-you-go fallback) carries &#x60;x-should-retry: false&#x60; and no Retry-After. When the tripped gate is a rolling 7-day cap (&#x60;param: weekly_input_tokens&#x60; or &#x60;param: weekly_output_tokens&#x60;), the error object also carries &#x60;quota_frees_at&#x60;, the RFC 3339 time the window frees enough capacity — the earlier of the two windows. &#x60;param&#x60; names the tripped gate: monthly_input_tokens, monthly_output_tokens, weekly_input_tokens, weekly_output_tokens, max_usage, input_overshoot (this request\&#39;s estimated input alone exceeds what is left in the tighter of the monthly and rolling 7-day input allowances), or output_overshoot (the same for the estimated output — the completion bound). On an overshoot the quota is not exhausted — send a smaller request (or a smaller max_tokens) or add credits. |  * Retry-After - Seconds the client should wait before retrying. <br>  * retry-after-ms -  <br>  * x-ratelimit-limit-requests -  <br>  * x-ratelimit-remaining-requests -  <br>  * x-ratelimit-reset-requests -  <br>  * x-should-retry -  <br>  * X-Deeprelay-Error-Code -  <br>  |
+| **500** | Internal server error (OpenAI error envelope). |  * X-Deeprelay-Error-Code -  <br>  |
+| **502** | The upstream answered but its response could not be used (OpenAI error envelope): code upstream_response_too_large when the vector payload exceeded the per-request size limit, or upstream_error for a malformed / misaligned response. Not retryable as-is for upstream_response_too_large — send fewer inputs. |  * X-Deeprelay-Error-Code -  <br>  |
+| **503** | No upstream could serve the request (OpenAI error envelope, &#x60;upstream_unavailable&#x60;): every capable upstream is down, shedding load, or none of the model\&#39;s routable upstreams supports a capability the request needs. Always carries Retry-After (whole seconds, rounded up) and retry-after-ms; on an overload the wait is jittered between 2 and 2.5 seconds. |  * Retry-After - Seconds the client should wait before retrying. <br>  * retry-after-ms -  <br>  * X-Deeprelay-Error-Code -  <br>  |
+| **504** | Upstream provider exceeded the synchronous per-attempt deadline (OpenAI error envelope). 504 semantic — distinct from 503 OpenAIUpstreamUnavailable which signals a connection or routing failure rather than a timeout.  |  * X-Deeprelay-Error-Code -  <br>  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 
 ## createImage
 
-> ImagesResponse createImage(imagesGenerationsRequest, idempotencyKey)
+> ImagesResponse createImage(imagesGenerationsRequest, idempotencyKey, xClientRequestId)
 
 Create image (OpenAI-compatible)
 
@@ -282,6 +291,8 @@ async function example() {
     imagesGenerationsRequest: ...,
     // string (optional)
     idempotencyKey: idempotencyKey_example,
+    // string | Your own correlation id for this call, up to 128 characters. It is stored on the request-log row as `client_request_id` and can be filtered on with `GET /requests?client_request_id=`. When it is absent, an inbound `X-Request-Id` is kept in its place; the response\'s own `X-Request-Id` is always minted by deeprelay. Surrounding whitespace and control characters are removed; a longer value is dropped, never truncated. It is never used as a lookup key, so it does not need to be unique. (optional)
+    xClientRequestId: xClientRequestId_example,
   } satisfies CreateImageRequest;
 
   try {
@@ -303,6 +314,7 @@ example().catch(console.error);
 |------------- | ------------- | ------------- | -------------|
 | **imagesGenerationsRequest** | [ImagesGenerationsRequest](ImagesGenerationsRequest.md) |  | |
 | **idempotencyKey** | `string` |  | [Optional] [Defaults to `undefined`] |
+| **xClientRequestId** | `string` | Your own correlation id for this call, up to 128 characters. It is stored on the request-log row as &#x60;client_request_id&#x60; and can be filtered on with &#x60;GET /requests?client_request_id&#x3D;&#x60;. When it is absent, an inbound &#x60;X-Request-Id&#x60; is kept in its place; the response\&#39;s own &#x60;X-Request-Id&#x60; is always minted by deeprelay. Surrounding whitespace and control characters are removed; a longer value is dropped, never truncated. It is never used as a lookup key, so it does not need to be unique. | [Optional] [Defaults to `undefined`] |
 
 ### Return type
 
@@ -322,23 +334,23 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | OpenAI-shaped image generation response (b64_json only). |  -  |
-| **400** | Invalid request (OpenAI error envelope). |  -  |
-| **401** | Missing or invalid API key (OpenAI error envelope). |  -  |
-| **402** | Insufficient balance (OpenAI error envelope, SERV-06). |  -  |
-| **403** | API key lacks the required scope (OpenAI error envelope). |  -  |
-| **404** | Model or resource not found (OpenAI error envelope). |  -  |
-| **422** | Request validation failed (OpenAI error envelope). |  -  |
-| **429** | Rate limit exceeded (OpenAI error envelope). Retry-After header indicates seconds to wait. |  * Retry-After - Seconds the client should wait before retrying. <br>  |
-| **500** | Internal server error (OpenAI error envelope). |  -  |
-| **503** | Upstream provider unavailable (OpenAI error envelope). Retry-After header may indicate seconds to wait. |  * Retry-After - Seconds the client should wait before retrying. <br>  |
-| **504** | Upstream provider exceeded the synchronous per-attempt deadline (OpenAI error envelope). 504 semantic — distinct from 503 OpenAIUpstreamUnavailable which signals a connection or routing failure rather than a timeout.  |  -  |
+| **400** | Invalid request (OpenAI error envelope). |  * X-Deeprelay-Error-Code -  <br>  |
+| **401** | Missing or invalid API key (OpenAI error envelope). |  * X-Deeprelay-Error-Code -  <br>  |
+| **402** | Insufficient balance or a spend limit reached (OpenAI error envelope, SERV-06): &#x60;insufficient_balance&#x60;, &#x60;daily_limit_reached&#x60;, &#x60;spending_limit_reached&#x60;, &#x60;api_key_budget_exceeded&#x60; (this API key\&#39;s monthly budget) or &#x60;member_spend_limit_reached&#x60; (the member\&#39;s monthly spend limit). Carries &#x60;x-should-retry: false&#x60;: the same request will not succeed until the wallet or the limit changes. |  * x-should-retry -  <br>  * X-Deeprelay-Error-Code -  <br>  |
+| **403** | API key lacks the required scope (&#x60;insufficient_scope&#x60;), or the key has a model allowlist that does not include the requested model (&#x60;model_not_allowed_for_key&#x60;; also the answer for a model that does not exist, so a restricted key cannot probe the catalog). OpenAI error envelope. |  * X-Deeprelay-Error-Code -  <br>  |
+| **404** | Model or resource not found (OpenAI error envelope). |  * X-Deeprelay-Error-Code -  <br>  |
+| **422** | Request validation failed (OpenAI error envelope). |  * X-Deeprelay-Error-Code -  <br>  |
+| **429** | Rate limit or subscription quota exceeded (OpenAI error envelope). A per-key or per-IP rate limit (&#x60;rate_limit_exceeded&#x60;) carries Retry-After, the whole seconds to wait, rounded up (minimum 1), and retry-after-ms, the exact wait; both are the time until one request is allowed, not a full refill. A per-key denial also carries the x-ratelimit-*-requests headers. A subscription quota denial (&#x60;subscription_quota_exhausted&#x60;, raised only when the wallet cannot cover the pay-as-you-go fallback) carries &#x60;x-should-retry: false&#x60; and no Retry-After. When the tripped gate is a rolling 7-day cap (&#x60;param: weekly_input_tokens&#x60; or &#x60;param: weekly_output_tokens&#x60;), the error object also carries &#x60;quota_frees_at&#x60;, the RFC 3339 time the window frees enough capacity — the earlier of the two windows. &#x60;param&#x60; names the tripped gate: monthly_input_tokens, monthly_output_tokens, weekly_input_tokens, weekly_output_tokens, max_usage, input_overshoot (this request\&#39;s estimated input alone exceeds what is left in the tighter of the monthly and rolling 7-day input allowances), or output_overshoot (the same for the estimated output — the completion bound). On an overshoot the quota is not exhausted — send a smaller request (or a smaller max_tokens) or add credits. |  * Retry-After - Seconds the client should wait before retrying. <br>  * retry-after-ms -  <br>  * x-ratelimit-limit-requests -  <br>  * x-ratelimit-remaining-requests -  <br>  * x-ratelimit-reset-requests -  <br>  * x-should-retry -  <br>  * X-Deeprelay-Error-Code -  <br>  |
+| **500** | Internal server error (OpenAI error envelope). |  * X-Deeprelay-Error-Code -  <br>  |
+| **503** | No upstream could serve the request (OpenAI error envelope, &#x60;upstream_unavailable&#x60;): every capable upstream is down, shedding load, or none of the model\&#39;s routable upstreams supports a capability the request needs. Always carries Retry-After (whole seconds, rounded up) and retry-after-ms; on an overload the wait is jittered between 2 and 2.5 seconds. |  * Retry-After - Seconds the client should wait before retrying. <br>  * retry-after-ms -  <br>  * X-Deeprelay-Error-Code -  <br>  |
+| **504** | Upstream provider exceeded the synchronous per-attempt deadline (OpenAI error envelope). 504 semantic — distinct from 503 OpenAIUpstreamUnavailable which signals a connection or routing failure rather than a timeout.  |  * X-Deeprelay-Error-Code -  <br>  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 
 ## createVideo
 
-> VideoJob createVideo(videoCreateRequest, idempotencyKey)
+> VideoJob createVideo(videoCreateRequest, idempotencyKey, xClientRequestId)
 
 Create a video generation job (async)
 
@@ -366,6 +378,8 @@ async function example() {
     videoCreateRequest: ...,
     // string (optional)
     idempotencyKey: idempotencyKey_example,
+    // string | Your own correlation id for this call, up to 128 characters. It is stored on the request-log row as `client_request_id` and can be filtered on with `GET /requests?client_request_id=`. When it is absent, an inbound `X-Request-Id` is kept in its place; the response\'s own `X-Request-Id` is always minted by deeprelay. Surrounding whitespace and control characters are removed; a longer value is dropped, never truncated. It is never used as a lookup key, so it does not need to be unique. (optional)
+    xClientRequestId: xClientRequestId_example,
   } satisfies CreateVideoRequest;
 
   try {
@@ -387,6 +401,7 @@ example().catch(console.error);
 |------------- | ------------- | ------------- | -------------|
 | **videoCreateRequest** | [VideoCreateRequest](VideoCreateRequest.md) |  | |
 | **idempotencyKey** | `string` |  | [Optional] [Defaults to `undefined`] |
+| **xClientRequestId** | `string` | Your own correlation id for this call, up to 128 characters. It is stored on the request-log row as &#x60;client_request_id&#x60; and can be filtered on with &#x60;GET /requests?client_request_id&#x3D;&#x60;. When it is absent, an inbound &#x60;X-Request-Id&#x60; is kept in its place; the response\&#39;s own &#x60;X-Request-Id&#x60; is always minted by deeprelay. Surrounding whitespace and control characters are removed; a longer value is dropped, never truncated. It is never used as a lookup key, so it does not need to be unique. | [Optional] [Defaults to `undefined`] |
 
 ### Return type
 
@@ -406,13 +421,13 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | A video generation job object. |  -  |
-| **400** | Invalid request (OpenAI error envelope). |  -  |
-| **401** | Missing or invalid API key (OpenAI error envelope). |  -  |
-| **402** | Insufficient balance (OpenAI error envelope, SERV-06). |  -  |
-| **403** | API key lacks the required scope (OpenAI error envelope). |  -  |
-| **404** | Model or resource not found (OpenAI error envelope). |  -  |
-| **429** | Rate limit exceeded (OpenAI error envelope). Retry-After header indicates seconds to wait. |  * Retry-After - Seconds the client should wait before retrying. <br>  |
-| **500** | Internal server error (OpenAI error envelope). |  -  |
+| **400** | Invalid request (OpenAI error envelope). |  * X-Deeprelay-Error-Code -  <br>  |
+| **401** | Missing or invalid API key (OpenAI error envelope). |  * X-Deeprelay-Error-Code -  <br>  |
+| **402** | Insufficient balance or a spend limit reached (OpenAI error envelope, SERV-06): &#x60;insufficient_balance&#x60;, &#x60;daily_limit_reached&#x60;, &#x60;spending_limit_reached&#x60;, &#x60;api_key_budget_exceeded&#x60; (this API key\&#39;s monthly budget) or &#x60;member_spend_limit_reached&#x60; (the member\&#39;s monthly spend limit). Carries &#x60;x-should-retry: false&#x60;: the same request will not succeed until the wallet or the limit changes. |  * x-should-retry -  <br>  * X-Deeprelay-Error-Code -  <br>  |
+| **403** | API key lacks the required scope (&#x60;insufficient_scope&#x60;), or the key has a model allowlist that does not include the requested model (&#x60;model_not_allowed_for_key&#x60;; also the answer for a model that does not exist, so a restricted key cannot probe the catalog). OpenAI error envelope. |  * X-Deeprelay-Error-Code -  <br>  |
+| **404** | Model or resource not found (OpenAI error envelope). |  * X-Deeprelay-Error-Code -  <br>  |
+| **429** | Rate limit or subscription quota exceeded (OpenAI error envelope). A per-key or per-IP rate limit (&#x60;rate_limit_exceeded&#x60;) carries Retry-After, the whole seconds to wait, rounded up (minimum 1), and retry-after-ms, the exact wait; both are the time until one request is allowed, not a full refill. A per-key denial also carries the x-ratelimit-*-requests headers. A subscription quota denial (&#x60;subscription_quota_exhausted&#x60;, raised only when the wallet cannot cover the pay-as-you-go fallback) carries &#x60;x-should-retry: false&#x60; and no Retry-After. When the tripped gate is a rolling 7-day cap (&#x60;param: weekly_input_tokens&#x60; or &#x60;param: weekly_output_tokens&#x60;), the error object also carries &#x60;quota_frees_at&#x60;, the RFC 3339 time the window frees enough capacity — the earlier of the two windows. &#x60;param&#x60; names the tripped gate: monthly_input_tokens, monthly_output_tokens, weekly_input_tokens, weekly_output_tokens, max_usage, input_overshoot (this request\&#39;s estimated input alone exceeds what is left in the tighter of the monthly and rolling 7-day input allowances), or output_overshoot (the same for the estimated output — the completion bound). On an overshoot the quota is not exhausted — send a smaller request (or a smaller max_tokens) or add credits. |  * Retry-After - Seconds the client should wait before retrying. <br>  * retry-after-ms -  <br>  * x-ratelimit-limit-requests -  <br>  * x-ratelimit-remaining-requests -  <br>  * x-ratelimit-reset-requests -  <br>  * x-should-retry -  <br>  * X-Deeprelay-Error-Code -  <br>  |
+| **500** | Internal server error (OpenAI error envelope). |  * X-Deeprelay-Error-Code -  <br>  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
@@ -422,6 +437,8 @@ example().catch(console.error);
 > Model getModel(id)
 
 Get a specific model (OpenAI-compatible)
+
+A key with a model allowlist gets 403 &#x60;model_not_allowed_for_key&#x60; for a model off its list, and the same 403 for an id that does not exist.
 
 ### Example
 
@@ -482,10 +499,10 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | OpenAI-shaped single model. |  -  |
-| **401** | Missing or invalid API key (OpenAI error envelope). |  -  |
-| **403** | API key lacks the required scope (OpenAI error envelope). |  -  |
-| **404** | Model or resource not found (OpenAI error envelope). |  -  |
-| **429** | Rate limit exceeded (OpenAI error envelope). Retry-After header indicates seconds to wait. |  * Retry-After - Seconds the client should wait before retrying. <br>  |
+| **401** | Missing or invalid API key (OpenAI error envelope). |  * X-Deeprelay-Error-Code -  <br>  |
+| **403** | API key lacks the required scope (&#x60;insufficient_scope&#x60;), or the key has a model allowlist that does not include the requested model (&#x60;model_not_allowed_for_key&#x60;; also the answer for a model that does not exist, so a restricted key cannot probe the catalog). OpenAI error envelope. |  * X-Deeprelay-Error-Code -  <br>  |
+| **404** | Model or resource not found (OpenAI error envelope). |  * X-Deeprelay-Error-Code -  <br>  |
+| **429** | Rate limit or subscription quota exceeded (OpenAI error envelope). A per-key or per-IP rate limit (&#x60;rate_limit_exceeded&#x60;) carries Retry-After, the whole seconds to wait, rounded up (minimum 1), and retry-after-ms, the exact wait; both are the time until one request is allowed, not a full refill. A per-key denial also carries the x-ratelimit-*-requests headers. A subscription quota denial (&#x60;subscription_quota_exhausted&#x60;, raised only when the wallet cannot cover the pay-as-you-go fallback) carries &#x60;x-should-retry: false&#x60; and no Retry-After. When the tripped gate is a rolling 7-day cap (&#x60;param: weekly_input_tokens&#x60; or &#x60;param: weekly_output_tokens&#x60;), the error object also carries &#x60;quota_frees_at&#x60;, the RFC 3339 time the window frees enough capacity — the earlier of the two windows. &#x60;param&#x60; names the tripped gate: monthly_input_tokens, monthly_output_tokens, weekly_input_tokens, weekly_output_tokens, max_usage, input_overshoot (this request\&#39;s estimated input alone exceeds what is left in the tighter of the monthly and rolling 7-day input allowances), or output_overshoot (the same for the estimated output — the completion bound). On an overshoot the quota is not exhausted — send a smaller request (or a smaller max_tokens) or add credits. |  * Retry-After - Seconds the client should wait before retrying. <br>  * retry-after-ms -  <br>  * x-ratelimit-limit-requests -  <br>  * x-ratelimit-remaining-requests -  <br>  * x-ratelimit-reset-requests -  <br>  * x-should-retry -  <br>  * X-Deeprelay-Error-Code -  <br>  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
@@ -555,10 +572,10 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | A video generation job object. |  -  |
-| **401** | Missing or invalid API key (OpenAI error envelope). |  -  |
-| **403** | API key lacks the required scope (OpenAI error envelope). |  -  |
-| **404** | Model or resource not found (OpenAI error envelope). |  -  |
-| **429** | Rate limit exceeded (OpenAI error envelope). Retry-After header indicates seconds to wait. |  * Retry-After - Seconds the client should wait before retrying. <br>  |
+| **401** | Missing or invalid API key (OpenAI error envelope). |  * X-Deeprelay-Error-Code -  <br>  |
+| **403** | API key lacks the required scope (&#x60;insufficient_scope&#x60;), or the key has a model allowlist that does not include the requested model (&#x60;model_not_allowed_for_key&#x60;; also the answer for a model that does not exist, so a restricted key cannot probe the catalog). OpenAI error envelope. |  * X-Deeprelay-Error-Code -  <br>  |
+| **404** | Model or resource not found (OpenAI error envelope). |  * X-Deeprelay-Error-Code -  <br>  |
+| **429** | Rate limit or subscription quota exceeded (OpenAI error envelope). A per-key or per-IP rate limit (&#x60;rate_limit_exceeded&#x60;) carries Retry-After, the whole seconds to wait, rounded up (minimum 1), and retry-after-ms, the exact wait; both are the time until one request is allowed, not a full refill. A per-key denial also carries the x-ratelimit-*-requests headers. A subscription quota denial (&#x60;subscription_quota_exhausted&#x60;, raised only when the wallet cannot cover the pay-as-you-go fallback) carries &#x60;x-should-retry: false&#x60; and no Retry-After. When the tripped gate is a rolling 7-day cap (&#x60;param: weekly_input_tokens&#x60; or &#x60;param: weekly_output_tokens&#x60;), the error object also carries &#x60;quota_frees_at&#x60;, the RFC 3339 time the window frees enough capacity — the earlier of the two windows. &#x60;param&#x60; names the tripped gate: monthly_input_tokens, monthly_output_tokens, weekly_input_tokens, weekly_output_tokens, max_usage, input_overshoot (this request\&#39;s estimated input alone exceeds what is left in the tighter of the monthly and rolling 7-day input allowances), or output_overshoot (the same for the estimated output — the completion bound). On an overshoot the quota is not exhausted — send a smaller request (or a smaller max_tokens) or add credits. |  * Retry-After - Seconds the client should wait before retrying. <br>  * retry-after-ms -  <br>  * x-ratelimit-limit-requests -  <br>  * x-ratelimit-remaining-requests -  <br>  * x-ratelimit-reset-requests -  <br>  * x-should-retry -  <br>  * X-Deeprelay-Error-Code -  <br>  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
@@ -630,11 +647,11 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | The generated video stream. |  -  |
-| **401** | Missing or invalid API key (OpenAI error envelope). |  -  |
-| **403** | API key lacks the required scope (OpenAI error envelope). |  -  |
-| **404** | Model or resource not found (OpenAI error envelope). |  -  |
-| **410** | The requested artifact has expired and is no longer available (OpenAI error envelope). |  -  |
-| **429** | Rate limit exceeded (OpenAI error envelope). Retry-After header indicates seconds to wait. |  * Retry-After - Seconds the client should wait before retrying. <br>  |
+| **401** | Missing or invalid API key (OpenAI error envelope). |  * X-Deeprelay-Error-Code -  <br>  |
+| **403** | API key lacks the required scope (&#x60;insufficient_scope&#x60;), or the key has a model allowlist that does not include the requested model (&#x60;model_not_allowed_for_key&#x60;; also the answer for a model that does not exist, so a restricted key cannot probe the catalog). OpenAI error envelope. |  * X-Deeprelay-Error-Code -  <br>  |
+| **404** | Model or resource not found (OpenAI error envelope). |  * X-Deeprelay-Error-Code -  <br>  |
+| **410** | The requested artifact has expired and is no longer available (OpenAI error envelope). |  * X-Deeprelay-Error-Code -  <br>  |
+| **429** | Rate limit or subscription quota exceeded (OpenAI error envelope). A per-key or per-IP rate limit (&#x60;rate_limit_exceeded&#x60;) carries Retry-After, the whole seconds to wait, rounded up (minimum 1), and retry-after-ms, the exact wait; both are the time until one request is allowed, not a full refill. A per-key denial also carries the x-ratelimit-*-requests headers. A subscription quota denial (&#x60;subscription_quota_exhausted&#x60;, raised only when the wallet cannot cover the pay-as-you-go fallback) carries &#x60;x-should-retry: false&#x60; and no Retry-After. When the tripped gate is a rolling 7-day cap (&#x60;param: weekly_input_tokens&#x60; or &#x60;param: weekly_output_tokens&#x60;), the error object also carries &#x60;quota_frees_at&#x60;, the RFC 3339 time the window frees enough capacity — the earlier of the two windows. &#x60;param&#x60; names the tripped gate: monthly_input_tokens, monthly_output_tokens, weekly_input_tokens, weekly_output_tokens, max_usage, input_overshoot (this request\&#39;s estimated input alone exceeds what is left in the tighter of the monthly and rolling 7-day input allowances), or output_overshoot (the same for the estimated output — the completion bound). On an overshoot the quota is not exhausted — send a smaller request (or a smaller max_tokens) or add credits. |  * Retry-After - Seconds the client should wait before retrying. <br>  * retry-after-ms -  <br>  * x-ratelimit-limit-requests -  <br>  * x-ratelimit-remaining-requests -  <br>  * x-ratelimit-reset-requests -  <br>  * x-should-retry -  <br>  * X-Deeprelay-Error-Code -  <br>  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
@@ -706,17 +723,19 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | OK |  -  |
-| **404** | Model or resource not found (OpenAI error envelope). |  -  |
-| **429** | Rate limit exceeded (OpenAI error envelope). Retry-After header indicates seconds to wait. |  * Retry-After - Seconds the client should wait before retrying. <br>  |
+| **404** | Model or resource not found (OpenAI error envelope). |  * X-Deeprelay-Error-Code -  <br>  |
+| **429** | Rate limit or subscription quota exceeded (OpenAI error envelope). A per-key or per-IP rate limit (&#x60;rate_limit_exceeded&#x60;) carries Retry-After, the whole seconds to wait, rounded up (minimum 1), and retry-after-ms, the exact wait; both are the time until one request is allowed, not a full refill. A per-key denial also carries the x-ratelimit-*-requests headers. A subscription quota denial (&#x60;subscription_quota_exhausted&#x60;, raised only when the wallet cannot cover the pay-as-you-go fallback) carries &#x60;x-should-retry: false&#x60; and no Retry-After. When the tripped gate is a rolling 7-day cap (&#x60;param: weekly_input_tokens&#x60; or &#x60;param: weekly_output_tokens&#x60;), the error object also carries &#x60;quota_frees_at&#x60;, the RFC 3339 time the window frees enough capacity — the earlier of the two windows. &#x60;param&#x60; names the tripped gate: monthly_input_tokens, monthly_output_tokens, weekly_input_tokens, weekly_output_tokens, max_usage, input_overshoot (this request\&#39;s estimated input alone exceeds what is left in the tighter of the monthly and rolling 7-day input allowances), or output_overshoot (the same for the estimated output — the completion bound). On an overshoot the quota is not exhausted — send a smaller request (or a smaller max_tokens) or add credits. |  * Retry-After - Seconds the client should wait before retrying. <br>  * retry-after-ms -  <br>  * x-ratelimit-limit-requests -  <br>  * x-ratelimit-remaining-requests -  <br>  * x-ratelimit-reset-requests -  <br>  * x-should-retry -  <br>  * X-Deeprelay-Error-Code -  <br>  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 
 ## listModels
 
-> ModelList listModels(modality)
+> ModelList listModels(modality, ifNoneMatch)
 
 List available models (OpenAI-compatible)
+
+Works with or without an API key, and returns the same body either way. Without a key the response is publicly cacheable (&#x60;Cache-Control: public, max-age&#x3D;60&#x60;), carries a strong &#x60;ETag&#x60; (send &#x60;If-None-Match&#x60; to get a 304), and is rate-limited per client IP (429 &#x60;rate_limit_exceeded&#x60; with Retry-After). With a key it is &#x60;Cache-Control: private&#x60; and counts against the key\&#39;s rate limit; an invalid key returns 401, it does not fall back to anonymous access. Error responses are &#x60;no-store&#x60;.  Each entry\&#39;s &#x60;supported_parameters&#x60; is backed by live capability probes of the model\&#39;s upstreams: it is the list to check before sending a gated parameter (&#x60;response_format&#x60;, &#x60;structured_outputs&#x60;, &#x60;logprobs&#x60;, &#x60;tools&#x60;, &#x60;vision&#x60;, ...).  One exception to \&quot;the same body\&quot;: a key with a model allowlist (&#x60;allowed_models&#x60;) sees only the models on its list.  Each entry may carry a &#x60;metrics&#x60; object (always the last key): measured time to first token, decode rate and success rate over a rolling window of deeprelay customer traffic. Below the sample minimum &#x60;insufficient_data&#x60; is true and the figure is omitted, never zero. 
 
 ### Example
 
@@ -738,6 +757,8 @@ async function example() {
   const body = {
     // 'chat' | 'image' | 'video' | 'embedding' (optional)
     modality: modality_example,
+    // string | An ETag from an earlier anonymous response; a match returns 304. (optional)
+    ifNoneMatch: ifNoneMatch_example,
   } satisfies ListModelsRequest;
 
   try {
@@ -758,6 +779,7 @@ example().catch(console.error);
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
 | **modality** | `chat`, `image`, `video`, `embedding` |  | [Optional] [Defaults to `undefined`] [Enum: chat, image, video, embedding] |
+| **ifNoneMatch** | `string` | An ETag from an earlier anonymous response; a match returns 304. | [Optional] [Defaults to `undefined`] |
 
 ### Return type
 
@@ -776,11 +798,12 @@ example().catch(console.error);
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-| **200** | OpenAI-shaped model list. |  -  |
-| **400** | Invalid request (OpenAI error envelope). |  -  |
-| **401** | Missing or invalid API key (OpenAI error envelope). |  -  |
-| **403** | API key lacks the required scope (OpenAI error envelope). |  -  |
-| **429** | Rate limit exceeded (OpenAI error envelope). Retry-After header indicates seconds to wait. |  * Retry-After - Seconds the client should wait before retrying. <br>  |
+| **200** | OpenAI-shaped model list. |  * Cache-Control - &#x60;public, max-age&#x3D;60&#x60; without a key; &#x60;private&#x60; with one. <br>  * ETag - Strong validator for the anonymous listing. <br>  |
+| **304** | Not modified; the If-None-Match ETag still matches. |  -  |
+| **400** | Invalid request (OpenAI error envelope). |  * X-Deeprelay-Error-Code -  <br>  |
+| **401** | Missing or invalid API key (OpenAI error envelope). |  * X-Deeprelay-Error-Code -  <br>  |
+| **403** | API key lacks the required scope (&#x60;insufficient_scope&#x60;), or the key has a model allowlist that does not include the requested model (&#x60;model_not_allowed_for_key&#x60;; also the answer for a model that does not exist, so a restricted key cannot probe the catalog). OpenAI error envelope. |  * X-Deeprelay-Error-Code -  <br>  |
+| **429** | Rate limit or subscription quota exceeded (OpenAI error envelope). A per-key or per-IP rate limit (&#x60;rate_limit_exceeded&#x60;) carries Retry-After, the whole seconds to wait, rounded up (minimum 1), and retry-after-ms, the exact wait; both are the time until one request is allowed, not a full refill. A per-key denial also carries the x-ratelimit-*-requests headers. A subscription quota denial (&#x60;subscription_quota_exhausted&#x60;, raised only when the wallet cannot cover the pay-as-you-go fallback) carries &#x60;x-should-retry: false&#x60; and no Retry-After. When the tripped gate is a rolling 7-day cap (&#x60;param: weekly_input_tokens&#x60; or &#x60;param: weekly_output_tokens&#x60;), the error object also carries &#x60;quota_frees_at&#x60;, the RFC 3339 time the window frees enough capacity — the earlier of the two windows. &#x60;param&#x60; names the tripped gate: monthly_input_tokens, monthly_output_tokens, weekly_input_tokens, weekly_output_tokens, max_usage, input_overshoot (this request\&#39;s estimated input alone exceeds what is left in the tighter of the monthly and rolling 7-day input allowances), or output_overshoot (the same for the estimated output — the completion bound). On an overshoot the quota is not exhausted — send a smaller request (or a smaller max_tokens) or add credits. |  * Retry-After - Seconds the client should wait before retrying. <br>  * retry-after-ms -  <br>  * x-ratelimit-limit-requests -  <br>  * x-ratelimit-remaining-requests -  <br>  * x-ratelimit-reset-requests -  <br>  * x-should-retry -  <br>  * X-Deeprelay-Error-Code -  <br>  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
@@ -853,9 +876,9 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **200** | A page of video generation jobs. |  -  |
-| **401** | Missing or invalid API key (OpenAI error envelope). |  -  |
-| **403** | API key lacks the required scope (OpenAI error envelope). |  -  |
-| **429** | Rate limit exceeded (OpenAI error envelope). Retry-After header indicates seconds to wait. |  * Retry-After - Seconds the client should wait before retrying. <br>  |
+| **401** | Missing or invalid API key (OpenAI error envelope). |  * X-Deeprelay-Error-Code -  <br>  |
+| **403** | API key lacks the required scope (&#x60;insufficient_scope&#x60;), or the key has a model allowlist that does not include the requested model (&#x60;model_not_allowed_for_key&#x60;; also the answer for a model that does not exist, so a restricted key cannot probe the catalog). OpenAI error envelope. |  * X-Deeprelay-Error-Code -  <br>  |
+| **429** | Rate limit or subscription quota exceeded (OpenAI error envelope). A per-key or per-IP rate limit (&#x60;rate_limit_exceeded&#x60;) carries Retry-After, the whole seconds to wait, rounded up (minimum 1), and retry-after-ms, the exact wait; both are the time until one request is allowed, not a full refill. A per-key denial also carries the x-ratelimit-*-requests headers. A subscription quota denial (&#x60;subscription_quota_exhausted&#x60;, raised only when the wallet cannot cover the pay-as-you-go fallback) carries &#x60;x-should-retry: false&#x60; and no Retry-After. When the tripped gate is a rolling 7-day cap (&#x60;param: weekly_input_tokens&#x60; or &#x60;param: weekly_output_tokens&#x60;), the error object also carries &#x60;quota_frees_at&#x60;, the RFC 3339 time the window frees enough capacity — the earlier of the two windows. &#x60;param&#x60; names the tripped gate: monthly_input_tokens, monthly_output_tokens, weekly_input_tokens, weekly_output_tokens, max_usage, input_overshoot (this request\&#39;s estimated input alone exceeds what is left in the tighter of the monthly and rolling 7-day input allowances), or output_overshoot (the same for the estimated output — the completion bound). On an overshoot the quota is not exhausted — send a smaller request (or a smaller max_tokens) or add credits. |  * Retry-After - Seconds the client should wait before retrying. <br>  * retry-after-ms -  <br>  * x-ratelimit-limit-requests -  <br>  * x-ratelimit-remaining-requests -  <br>  * x-ratelimit-reset-requests -  <br>  * x-should-retry -  <br>  * X-Deeprelay-Error-Code -  <br>  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 

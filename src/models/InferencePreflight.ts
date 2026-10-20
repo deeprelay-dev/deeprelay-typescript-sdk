@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * deeprelay Public Developer API
- * Programmatic API for deeprelay. Authenticate with API keys minted from the dashboard. See https://deeprelay.ai/docs for details. 
+ * Programmatic API for deeprelay. Authenticate with API keys minted from the dashboard. See https://deeprelay.ai/docs for details.  Keys minted from the dashboard or `deeprelay login` belong to the Production server, https://api.deeprelay.ai/v1. The Demo server is an internal staging environment with its own key store.  Versioning: `/v1` is the API version. `info.version` is the revision of this `/v1` document, not a separate API.  OpenAI compatibility: chat completions follow the OpenAI request and response shapes, but not every OpenAI parameter is carried. Some are rejected with 400 `unsupported_parameter` and any parameter not declared in this spec is accepted and ignored. The full table is at https://deeprelay.ai/docs/api/inference#openai-compatibility. 
  *
  * The version of the OpenAPI document: 1.0.0
  * Contact: support@deeprelay.ai
@@ -33,7 +33,7 @@ export interface InferencePreflight {
      */
     verdict: InferencePreflightVerdictEnum;
     /**
-     * Stable code explaining the verdict, for clients that need their own wording. Absent on a plain `ok` that needs no explanation.
+     * Stable code explaining the verdict, for clients that need their own wording. Absent on a plain `ok` that needs no explanation. `api_key_budget_exceeded`, `member_spend_limit_reached` and `model_not_allowed_for_key` come with `verdict: block` and only for a key that has a budget or a model allowlist, or a member that has a spend limit.
      * @type {InferencePreflightReasonEnum}
      * @memberof InferencePreflight
      */
@@ -86,6 +86,9 @@ export const InferencePreflightReasonEnum = {
     InsufficientBalance: 'insufficient_balance',
     DailyLimitReached: 'daily_limit_reached',
     MonthlyLimitReached: 'monthly_limit_reached',
+    ApiKeyBudgetExceeded: 'api_key_budget_exceeded',
+    MemberSpendLimitReached: 'member_spend_limit_reached',
+    ModelNotAllowedForKey: 'model_not_allowed_for_key',
     PreflightUnavailable: 'preflight_unavailable'
 } as const;
 export type InferencePreflightReasonEnum = typeof InferencePreflightReasonEnum[keyof typeof InferencePreflightReasonEnum];

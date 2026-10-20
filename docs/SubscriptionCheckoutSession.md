@@ -9,6 +9,8 @@ Name | Type
 `checkoutUrl` | string
 `sessionId` | string
 `plan` | [SubscriptionPlan](SubscriptionPlan.md)
+`switchTo` | string
+`firstChargeAt` | Date
 
 ## Example
 
@@ -20,6 +22,8 @@ const example = {
   "checkoutUrl": null,
   "sessionId": null,
   "plan": null,
+  "switchTo": null,
+  "firstChargeAt": null,
 } satisfies SubscriptionCheckoutSession
 
 console.log(example)

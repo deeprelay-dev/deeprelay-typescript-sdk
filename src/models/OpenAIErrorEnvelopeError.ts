@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * deeprelay Public Developer API
- * Programmatic API for deeprelay. Authenticate with API keys minted from the dashboard. See https://deeprelay.ai/docs for details. 
+ * Programmatic API for deeprelay. Authenticate with API keys minted from the dashboard. See https://deeprelay.ai/docs for details.  Keys minted from the dashboard or `deeprelay login` belong to the Production server, https://api.deeprelay.ai/v1. The Demo server is an internal staging environment with its own key store.  Versioning: `/v1` is the API version. `info.version` is the revision of this `/v1` document, not a separate API.  OpenAI compatibility: chat completions follow the OpenAI request and response shapes, but not every OpenAI parameter is carried. Some are rejected with 400 `unsupported_parameter` and any parameter not declared in this spec is accepted and ignored. The full table is at https://deeprelay.ai/docs/api/inference#openai-compatibility. 
  *
  * The version of the OpenAPI document: 1.0.0
  * Contact: support@deeprelay.ai
@@ -32,7 +32,7 @@ export interface OpenAIErrorEnvelopeError {
      */
     type: string;
     /**
-     * 
+     * On a 429 subscription_quota_exhausted this is the tripped gate: monthly_input_tokens, monthly_output_tokens, weekly_input_tokens, weekly_output_tokens, max_usage, input_overshoot (this request's estimated input alone exceeds what is left in the tighter of the monthly and rolling 7-day input allowances), or output_overshoot (the same for the estimated output — the completion bound, max_tokens or the model's declared maximum). On an overshoot the quota is not exhausted — send a smaller request (or a smaller max_tokens) or add credits.
      * @type {string}
      * @memberof OpenAIErrorEnvelopeError
      */
@@ -43,6 +43,12 @@ export interface OpenAIErrorEnvelopeError {
      * @memberof OpenAIErrorEnvelopeError
      */
     code: string;
+    /**
+     * Only on a 429 `subscription_quota_exhausted` whose `param` is `weekly_input_tokens` or `weekly_output_tokens` (the rolling 7-day caps): the RFC 3339 time at which enough plan-covered usage ages out of the rolling window for requests to ride the plan again — the earlier of the two windows' free times, each computed from its own dimension. The message names the same time. Omitted on every other error, and omitted when it cannot be computed. There is no Retry-After on this 429 and `x-should-retry` is `false`: wait until this time or add credits, rather than auto-retrying.
+     * @type {Date}
+     * @memberof OpenAIErrorEnvelopeError
+     */
+    quotaFreesAt?: Date;
 }
 
 /**
@@ -69,6 +75,7 @@ export function OpenAIErrorEnvelopeErrorFromJSONTyped(json: any, ignoreDiscrimin
         'type': json['type'],
         'param': json['param'] == null ? undefined : json['param'],
         'code': json['code'],
+        'quotaFreesAt': json['quota_frees_at'] == null ? undefined : (new Date(json['quota_frees_at'])),
     };
 }
 
@@ -87,6 +94,7 @@ export function OpenAIErrorEnvelopeErrorToJSONTyped(value?: OpenAIErrorEnvelopeE
         'type': value['type'],
         'param': value['param'],
         'code': value['code'],
+        'quota_frees_at': value['quotaFreesAt'] == null ? value['quotaFreesAt'] : value['quotaFreesAt'].toISOString(),
     };
 }
 

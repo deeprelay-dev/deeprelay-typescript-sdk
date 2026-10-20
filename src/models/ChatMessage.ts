@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * deeprelay Public Developer API
- * Programmatic API for deeprelay. Authenticate with API keys minted from the dashboard. See https://deeprelay.ai/docs for details. 
+ * Programmatic API for deeprelay. Authenticate with API keys minted from the dashboard. See https://deeprelay.ai/docs for details.  Keys minted from the dashboard or `deeprelay login` belong to the Production server, https://api.deeprelay.ai/v1. The Demo server is an internal staging environment with its own key store.  Versioning: `/v1` is the API version. `info.version` is the revision of this `/v1` document, not a separate API.  OpenAI compatibility: chat completions follow the OpenAI request and response shapes, but not every OpenAI parameter is carried. Some are rejected with 400 `unsupported_parameter` and any parameter not declared in this spec is accepted and ignored. The full table is at https://deeprelay.ai/docs/api/inference#openai-compatibility. 
  *
  * The version of the OpenAPI document: 1.0.0
  * Contact: support@deeprelay.ai
@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
+import type { ToolCall } from './ToolCall';
+import {
+    ToolCallFromJSON,
+    ToolCallFromJSONTyped,
+    ToolCallToJSON,
+    ToolCallToJSONTyped,
+} from './ToolCall';
+
 /**
  * 
  * @export
@@ -20,17 +28,34 @@ import { mapValues } from '../runtime';
  */
 export interface ChatMessage {
     /**
+     * "developer" is OpenAI's newer spelling of "system" and is treated as system.
      * 
      * @type {ChatMessageRoleEnum}
      * @memberof ChatMessage
      */
     role: ChatMessageRoleEnum;
     /**
+     * The message text. Null on an assistant turn that is purely a tool call — branch on that to tell a tool call from a reply. Responses always carry a string (or null).
+     * 
+     * Requests may instead send an array of content parts, as OpenAI clients do (typed here as a string so SDK callers can keep passing plain text). Text parts ({"type":"text","text":"..."}) are joined with newlines. Image parts ({"type":"image_url","image_url":{"url":"..."}}) are accepted on models whose supported_parameters list "vision"; any other model returns 400 unsupported_parameter (param messages) naming the models that accept images. `url` must be an https URL or a data:image/{png,jpeg,webp,gif};base64 URI, and the relay never fetches it itself. Limits: 16 images per request, 20 MiB per image, 8 KiB per URL, inside the 32 MiB body cap (413 request_too_large). Each image counts as 1,600 tokens in the spend preflight. `image_url.detail` is accepted but not forwarded, and is reported in x-deeprelay-ignored-params. Audio and file parts are rejected with 400 unsupported_content_part.
      * 
      * @type {string}
      * @memberof ChatMessage
      */
-    content: string;
+    content?: string;
+    /**
+     * Calls the model wants made. Assistant messages only.
+     * @type {Array<ToolCall>}
+     * @memberof ChatMessage
+     */
+    toolCalls?: Array<ToolCall>;
+    /**
+     * Which call this message answers. REQUIRED on a role "tool" message — without it the upstream cannot match the result to its call.
+     * 
+     * @type {string}
+     * @memberof ChatMessage
+     */
+    toolCallId?: string;
 }
 
 
@@ -39,8 +64,10 @@ export interface ChatMessage {
  */
 export const ChatMessageRoleEnum = {
     System: 'system',
+    Developer: 'developer',
     User: 'user',
-    Assistant: 'assistant'
+    Assistant: 'assistant',
+    Tool: 'tool'
 } as const;
 export type ChatMessageRoleEnum = typeof ChatMessageRoleEnum[keyof typeof ChatMessageRoleEnum];
 
@@ -50,7 +77,6 @@ export type ChatMessageRoleEnum = typeof ChatMessageRoleEnum[keyof typeof ChatMe
  */
 export function instanceOfChatMessage(value: object): value is ChatMessage {
     if (!('role' in value) || value['role'] === undefined) return false;
-    if (!('content' in value) || value['content'] === undefined) return false;
     return true;
 }
 
@@ -65,7 +91,9 @@ export function ChatMessageFromJSONTyped(json: any, ignoreDiscriminator: boolean
     return {
         
         'role': json['role'],
-        'content': json['content'],
+        'content': json['content'] == null ? undefined : json['content'],
+        'toolCalls': json['tool_calls'] == null ? undefined : ((json['tool_calls'] as Array<any>).map(ToolCallFromJSON)),
+        'toolCallId': json['tool_call_id'] == null ? undefined : json['tool_call_id'],
     };
 }
 
@@ -82,6 +110,8 @@ export function ChatMessageToJSONTyped(value?: ChatMessage | null, ignoreDiscrim
         
         'role': value['role'],
         'content': value['content'],
+        'tool_calls': value['toolCalls'] == null ? undefined : ((value['toolCalls'] as Array<any>).map(ToolCallToJSON)),
+        'tool_call_id': value['toolCallId'],
     };
 }
 

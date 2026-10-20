@@ -1,4 +1,4 @@
-# @deeprelay/sdk@0.2.1
+# @deeprelay/sdk@0.3.0
 
 A TypeScript SDK client for the api.deeprelay.ai API.
 
@@ -16,9 +16,9 @@ Next, try it out.
 ```ts
 import {
   Configuration,
-  BillingApi,
+  AlertsApi,
 } from '@deeprelay/sdk';
-import type { CreateCryptoDepositOperationRequest } from '@deeprelay/sdk';
+import type { GetAlertSettingsRequest } from '@deeprelay/sdk';
 
 async function example() {
   console.log("🚀 Testing @deeprelay/sdk SDK...");
@@ -26,15 +26,10 @@ async function example() {
     // Configure HTTP bearer authorization: bearerAuth
     accessToken: "YOUR BEARER TOKEN",
   });
-  const api = new BillingApi(config);
-
-  const body = {
-    // CreateCryptoDepositRequest
-    createCryptoDepositRequest: ...,
-  } satisfies CreateCryptoDepositOperationRequest;
+  const api = new AlertsApi(config);
 
   try {
-    const data = await api.createCryptoDeposit(body);
+    const data = await api.getAlertSettings();
     console.log(data);
   } catch (error) {
     console.error(error);
@@ -54,6 +49,13 @@ All URIs are relative to *https://api.deeprelay.ai/v1*
 
 | Class | Method | HTTP request | Description
 | ----- | ------ | ------------ | -------------
+*AlertsApi* | [**getAlertSettings**](docs/AlertsApi.md#getalertsettings) | **GET** /alerts/settings | Get the organization\&#39;s alert settings
+*AlertsApi* | [**putAlertSettings**](docs/AlertsApi.md#putalertsettings) | **PUT** /alerts/settings | Replace the organization\&#39;s alert settings
+*ApiKeysApi* | [**createApiKey**](docs/ApiKeysApi.md#createapikey) | **POST** /api-keys | Create an API key
+*ApiKeysApi* | [**getApiKey**](docs/ApiKeysApi.md#getapikey) | **GET** /api-keys/{id} | Get an API key
+*ApiKeysApi* | [**listApiKeys**](docs/ApiKeysApi.md#listapikeys) | **GET** /api-keys | List API keys
+*ApiKeysApi* | [**revokeApiKey**](docs/ApiKeysApi.md#revokeapikey) | **DELETE** /api-keys/{id} | Revoke an API key
+*ApiKeysApi* | [**updateApiKey**](docs/ApiKeysApi.md#updateapikey) | **PATCH** /api-keys/{id} | Update an API key\&#39;s name or limits
 *BillingApi* | [**createCryptoDeposit**](docs/BillingApi.md#createcryptodepositoperation) | **POST** /billing/deposits/crypto | Create a stablecoin deposit
 *BillingApi* | [**createSubscriptionCheckout**](docs/BillingApi.md#createsubscriptioncheckout) | **POST** /billing/subscription/checkout | Start a subscription checkout session
 *BillingApi* | [**createSubscriptionPortal**](docs/BillingApi.md#createsubscriptionportal) | **POST** /billing/subscription/portal | Open the billing portal to cancel or manage the subscription
@@ -65,6 +67,7 @@ All URIs are relative to *https://api.deeprelay.ai/v1*
 *BillingApi* | [**getSubscription**](docs/BillingApi.md#getsubscription) | **GET** /billing/subscription | Get the org subscription status and quota usage
 *BillingApi* | [**listDeposits**](docs/BillingApi.md#listdeposits) | **GET** /billing/deposits | List stablecoin deposits
 *BillingApi* | [**updateSpendingLimit**](docs/BillingApi.md#updatespendinglimitoperation) | **PUT** /billing/spending-limit | Set the org spending limit
+*BillingApi* | [**upgradeSubscription**](docs/BillingApi.md#upgradesubscription) | **POST** /billing/subscription/upgrade | Upgrade the subscription to a bigger plan
 *InferenceApi* | [**cancelVideo**](docs/InferenceApi.md#cancelvideo) | **POST** /videos/{id}/cancel | Cancel a video generation job
 *InferenceApi* | [**createChatCompletion**](docs/InferenceApi.md#createchatcompletion) | **POST** /chat/completions | Create a chat completion (OpenAI-compatible)
 *InferenceApi* | [**createEmbeddings**](docs/InferenceApi.md#createembeddings) | **POST** /embeddings | Create embeddings (OpenAI-compatible)
@@ -78,6 +81,9 @@ All URIs are relative to *https://api.deeprelay.ai/v1*
 *InferenceApi* | [**listVideos**](docs/InferenceApi.md#listvideos) | **GET** /videos | List video generation jobs
 *MetaApi* | [**getHealth**](docs/MetaApi.md#gethealth) | **GET** /health | Liveness probe
 *MetaApi* | [**getOpenApiSpec**](docs/MetaApi.md#getopenapispec) | **GET** /openapi.json | OpenAPI 3.1 specification
+*RequestsApi* | [**exportRequests**](docs/RequestsApi.md#exportrequests) | **GET** /requests/export | Export the request log as CSV
+*RequestsApi* | [**getRequest**](docs/RequestsApi.md#getrequest) | **GET** /requests/{id} | Get one request
+*RequestsApi* | [**listRequests**](docs/RequestsApi.md#listrequests) | **GET** /requests | List requests (the request log)
 *UsageApi* | [**listUsage**](docs/UsageApi.md#listusage) | **GET** /usage | Time-bucketed usage
 *WebhooksApi* | [**createWebhookEndpoint**](docs/WebhooksApi.md#createwebhookendpointoperation) | **POST** /webhook-endpoints | Create a webhook endpoint
 *WebhooksApi* | [**deleteWebhookEndpoint**](docs/WebhooksApi.md#deletewebhookendpoint) | **DELETE** /webhook-endpoints/{id} | Delete a webhook endpoint
@@ -87,11 +93,23 @@ All URIs are relative to *https://api.deeprelay.ai/v1*
 
 ### Models
 
+- [AlertEmailToggles](docs/AlertEmailToggles.md)
+- [AlertSettings](docs/AlertSettings.md)
+- [AlertSettingsUpdate](docs/AlertSettingsUpdate.md)
+- [ApiKey](docs/ApiKey.md)
+- [ApiKeyCreate](docs/ApiKeyCreate.md)
+- [ApiKeyCreated](docs/ApiKeyCreated.md)
+- [ApiKeyList](docs/ApiKeyList.md)
+- [ApiKeyScopes](docs/ApiKeyScopes.md)
+- [ApiKeyUpdate](docs/ApiKeyUpdate.md)
 - [Balance](docs/Balance.md)
 - [ChatChoice](docs/ChatChoice.md)
 - [ChatCompletionRequest](docs/ChatCompletionRequest.md)
+- [ChatCompletionRequestResponseFormat](docs/ChatCompletionRequestResponseFormat.md)
+- [ChatCompletionRequestToolChoice](docs/ChatCompletionRequestToolChoice.md)
 - [ChatCompletionResponse](docs/ChatCompletionResponse.md)
 - [ChatMessage](docs/ChatMessage.md)
+- [CostDetails](docs/CostDetails.md)
 - [CreateCryptoDepositRequest](docs/CreateCryptoDepositRequest.md)
 - [CreateWebhookEndpointRequest](docs/CreateWebhookEndpointRequest.md)
 - [CryptoDeposit](docs/CryptoDeposit.md)
@@ -106,9 +124,11 @@ All URIs are relative to *https://api.deeprelay.ai/v1*
 - [ImagesResponseDataInner](docs/ImagesResponseDataInner.md)
 - [ImagesResponseUsage](docs/ImagesResponseUsage.md)
 - [InferencePreflight](docs/InferencePreflight.md)
+- [JSONSchemaFormat](docs/JSONSchemaFormat.md)
 - [ListDeposits200Response](docs/ListDeposits200Response.md)
 - [Model](docs/Model.md)
 - [ModelList](docs/ModelList.md)
+- [ModelMetrics](docs/ModelMetrics.md)
 - [ModelParametersInner](docs/ModelParametersInner.md)
 - [ModelPricing](docs/ModelPricing.md)
 - [ModelRate](docs/ModelRate.md)
@@ -118,21 +138,37 @@ All URIs are relative to *https://api.deeprelay.ai/v1*
 - [Problem](docs/Problem.md)
 - [RefereeStatus](docs/RefereeStatus.md)
 - [Referral](docs/Referral.md)
+- [RequestLogEntry](docs/RequestLogEntry.md)
+- [RequestLogPage](docs/RequestLogPage.md)
+- [ResponseFormatJSONObject](docs/ResponseFormatJSONObject.md)
+- [ResponseFormatJSONSchema](docs/ResponseFormatJSONSchema.md)
+- [ResponseFormatText](docs/ResponseFormatText.md)
 - [SpendingLimit](docs/SpendingLimit.md)
 - [StreamOptions](docs/StreamOptions.md)
 - [Subscription](docs/Subscription.md)
 - [SubscriptionCheckoutRequest](docs/SubscriptionCheckoutRequest.md)
 - [SubscriptionCheckoutSession](docs/SubscriptionCheckoutSession.md)
+- [SubscriptionModelUsage](docs/SubscriptionModelUsage.md)
 - [SubscriptionPlan](docs/SubscriptionPlan.md)
 - [SubscriptionPortalRequest](docs/SubscriptionPortalRequest.md)
 - [SubscriptionPortalSession](docs/SubscriptionPortalSession.md)
 - [SubscriptionPrice](docs/SubscriptionPrice.md)
 - [SubscriptionQuota](docs/SubscriptionQuota.md)
+- [SubscriptionTier](docs/SubscriptionTier.md)
+- [SubscriptionUpgradeRequest](docs/SubscriptionUpgradeRequest.md)
 - [SubscriptionUsage](docs/SubscriptionUsage.md)
+- [Tool](docs/Tool.md)
+- [ToolCall](docs/ToolCall.md)
+- [ToolCallFunction](docs/ToolCallFunction.md)
+- [ToolChoiceFunction](docs/ToolChoiceFunction.md)
+- [ToolChoiceFunctionFunction](docs/ToolChoiceFunctionFunction.md)
+- [ToolFunction](docs/ToolFunction.md)
 - [UpdateSpendingLimitRequest](docs/UpdateSpendingLimitRequest.md)
 - [Usage](docs/Usage.md)
 - [UsageBucket](docs/UsageBucket.md)
+- [UsageCompletionTokensDetails](docs/UsageCompletionTokensDetails.md)
 - [UsagePage](docs/UsagePage.md)
+- [UsagePromptTokensDetails](docs/UsagePromptTokensDetails.md)
 - [VideoCreateRequest](docs/VideoCreateRequest.md)
 - [VideoJob](docs/VideoJob.md)
 - [VideoList](docs/VideoList.md)
@@ -156,7 +192,7 @@ and is automatically generated by the
 [OpenAPI Generator](https://openapi-generator.tech) project:
 
 - API version: `1.0.0`
-- Package version: `0.2.1`
+- Package version: `0.3.0`
 - Generator version: `7.24.0`
 - Build package: `org.openapitools.codegen.languages.TypeScriptFetchClientCodegen`
 

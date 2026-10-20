@@ -8,6 +8,8 @@ Name | Type
 ------------ | -------------
 `role` | string
 `content` | string
+`toolCalls` | [Array&lt;ToolCall&gt;](ToolCall.md)
+`toolCallId` | string
 
 ## Example
 
@@ -18,6 +20,8 @@ import type { ChatMessage } from '@deeprelay/sdk'
 const example = {
   "role": null,
   "content": null,
+  "toolCalls": null,
+  "toolCallId": null,
 } satisfies ChatMessage
 
 console.log(example)

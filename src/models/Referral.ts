@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * deeprelay Public Developer API
- * Programmatic API for deeprelay. Authenticate with API keys minted from the dashboard. See https://deeprelay.ai/docs for details. 
+ * Programmatic API for deeprelay. Authenticate with API keys minted from the dashboard. See https://deeprelay.ai/docs for details.  Keys minted from the dashboard or `deeprelay login` belong to the Production server, https://api.deeprelay.ai/v1. The Demo server is an internal staging environment with its own key store.  Versioning: `/v1` is the API version. `info.version` is the revision of this `/v1` document, not a separate API.  OpenAI compatibility: chat completions follow the OpenAI request and response shapes, but not every OpenAI parameter is carried. Some are rejected with 400 `unsupported_parameter` and any parameter not declared in this spec is accepted and ignored. The full table is at https://deeprelay.ai/docs/api/inference#openai-compatibility. 
  *
  * The version of the OpenAPI document: 1.0.0
  * Contact: support@deeprelay.ai
@@ -29,7 +29,7 @@ import {
  */
 export interface Referral {
     /**
-     * The organization's shareable referral code, e.g. `GPU-7KQ2-M4XP`.
+     * The organization's shareable referral code, e.g. `DR-7KQ2-M4XP`.
      * @type {string}
      * @memberof Referral
      */
@@ -65,6 +65,12 @@ export interface Referral {
      */
     earnedCents: number;
     /**
+     * Total deposit commission credited to this organization as a referrer (separate from the flat bonus in `earned_cents`).
+     * @type {number}
+     * @memberof Referral
+     */
+    commissionEarnedCents: number;
+    /**
      * Credit paid to the referrer per settled referral.
      * @type {number}
      * @memberof Referral
@@ -89,6 +95,12 @@ export interface Referral {
      */
     holdDays: number;
     /**
+     * Percentage of each real deposit a referred friend makes that is credited to the referrer as spend-only promotional credit. 0 means the commission is off.
+     * @type {number}
+     * @memberof Referral
+     */
+    commissionPct: number;
+    /**
      * 
      * @type {RefereeStatus}
      * @memberof Referral
@@ -106,10 +118,12 @@ export function instanceOfReferral(value: object): value is Referral {
     if (!('qualified' in value) || value['qualified'] === undefined) return false;
     if (!('settled' in value) || value['settled'] === undefined) return false;
     if ((!('earnedCents' in (value as Record<string, any>)) && !('earned_cents' in (value as Record<string, any>))) || ((value as Record<string, any>)['earnedCents'] === undefined && (value as Record<string, any>)['earned_cents'] === undefined)) return false;
+    if ((!('commissionEarnedCents' in (value as Record<string, any>)) && !('commission_earned_cents' in (value as Record<string, any>))) || ((value as Record<string, any>)['commissionEarnedCents'] === undefined && (value as Record<string, any>)['commission_earned_cents'] === undefined)) return false;
     if ((!('rewardCents' in (value as Record<string, any>)) && !('reward_cents' in (value as Record<string, any>))) || ((value as Record<string, any>)['rewardCents'] === undefined && (value as Record<string, any>)['reward_cents'] === undefined)) return false;
     if ((!('refereeRewardCents' in (value as Record<string, any>)) && !('referee_reward_cents' in (value as Record<string, any>))) || ((value as Record<string, any>)['refereeRewardCents'] === undefined && (value as Record<string, any>)['referee_reward_cents'] === undefined)) return false;
     if ((!('qualifySpendCents' in (value as Record<string, any>)) && !('qualify_spend_cents' in (value as Record<string, any>))) || ((value as Record<string, any>)['qualifySpendCents'] === undefined && (value as Record<string, any>)['qualify_spend_cents'] === undefined)) return false;
     if ((!('holdDays' in (value as Record<string, any>)) && !('hold_days' in (value as Record<string, any>))) || ((value as Record<string, any>)['holdDays'] === undefined && (value as Record<string, any>)['hold_days'] === undefined)) return false;
+    if ((!('commissionPct' in (value as Record<string, any>)) && !('commission_pct' in (value as Record<string, any>))) || ((value as Record<string, any>)['commissionPct'] === undefined && (value as Record<string, any>)['commission_pct'] === undefined)) return false;
     return true;
 }
 
@@ -129,10 +143,12 @@ export function ReferralFromJSONTyped(json: any, ignoreDiscriminator: boolean): 
         'qualified': json['qualified'],
         'settled': json['settled'],
         'earnedCents': json['earned_cents'],
+        'commissionEarnedCents': json['commission_earned_cents'],
         'rewardCents': json['reward_cents'],
         'refereeRewardCents': json['referee_reward_cents'],
         'qualifySpendCents': json['qualify_spend_cents'],
         'holdDays': json['hold_days'],
+        'commissionPct': json['commission_pct'],
         'referred': json['referred'] == null ? undefined : RefereeStatusFromJSON(json['referred']),
     };
 }
@@ -154,10 +170,12 @@ export function ReferralToJSONTyped(value?: Referral | null, ignoreDiscriminator
         'qualified': value['qualified'],
         'settled': value['settled'],
         'earned_cents': value['earnedCents'],
+        'commission_earned_cents': value['commissionEarnedCents'],
         'reward_cents': value['rewardCents'],
         'referee_reward_cents': value['refereeRewardCents'],
         'qualify_spend_cents': value['qualifySpendCents'],
         'hold_days': value['holdDays'],
+        'commission_pct': value['commissionPct'],
         'referred': RefereeStatusToJSON(value['referred']),
     };
 }

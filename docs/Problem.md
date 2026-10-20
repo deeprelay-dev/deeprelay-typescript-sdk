@@ -12,6 +12,8 @@ Name | Type
 `detail` | string
 `code` | string
 `requestId` | string
+`field` | string
+`maxRows` | number
 
 ## Example
 
@@ -26,6 +28,8 @@ const example = {
   "detail": null,
   "code": null,
   "requestId": null,
+  "field": null,
+  "maxRows": null,
 } satisfies Problem
 
 console.log(example)
