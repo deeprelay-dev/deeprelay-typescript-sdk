@@ -75,7 +75,7 @@ export class Configuration {
     }
 
     get headers(): HTTPHeaders | undefined {
-        return { 'User-Agent': 'deeprelay-sdk-ts/0.3.0', ...this.configuration.headers };
+        return { 'User-Agent': 'deeprelay-sdk-ts/0.4.0', ...this.configuration.headers };
     }
 
     get credentials(): RequestCredentials | undefined {

@@ -122,11 +122,11 @@ export interface RequestLogEntry {
      */
     quotaUnits?: number;
     /**
-     * The exact USD amount billed to the wallet, as a decimal string in the same format as `usage.cost`. `"0"` for a plan-covered, rejected or failed call.
-     * @type {string}
+     * The exact USD amount billed to the wallet, in the same format as `usage.cost`: an exact decimal with up to 8 places, emitted as a JSON number. `0` for a plan-covered, rejected or failed call.
+     * @type {number}
      * @memberof RequestLogEntry
      */
-    cost: string;
+    cost: number;
     /**
      * The same amount as an integer number of micro-cents.
      * @type {number}

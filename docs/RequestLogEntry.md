@@ -24,7 +24,7 @@ Name | Type
 `cachedTokens` | number
 `reasoningTokens` | number
 `quotaUnits` | number
-`cost` | string
+`cost` | number
 `costMicroCents` | number
 `planCovered` | boolean
 `ttftMs` | number
