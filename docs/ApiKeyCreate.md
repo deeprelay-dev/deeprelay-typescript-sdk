@@ -10,6 +10,7 @@ Name | Type
 `scopes` | { [key: string]: any; }
 `budgetCents` | number
 `allowedModels` | Array&lt;string&gt;
+`fallbackModels` | Array&lt;string&gt;
 `rateLimitRps` | number
 `rateLimitBurst` | number
 `expiresAt` | Date
@@ -25,6 +26,7 @@ const example = {
   "scopes": null,
   "budgetCents": null,
   "allowedModels": null,
+  "fallbackModels": null,
   "rateLimitRps": null,
   "rateLimitBurst": null,
   "expiresAt": null,

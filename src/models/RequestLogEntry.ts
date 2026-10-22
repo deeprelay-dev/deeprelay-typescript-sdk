@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
+import type { RequestAttempt } from './RequestAttempt';
+import {
+    RequestAttemptFromJSON,
+    RequestAttemptFromJSONTyped,
+    RequestAttemptToJSON,
+    RequestAttemptToJSONTyped,
+} from './RequestAttempt';
+
 /**
  * One inference call as the request log records it. Never carries prompt or completion content. Optional numeric fields are omitted when they do not apply (for example token counts on a rejected call).
  * @export
@@ -181,6 +189,30 @@ export interface RequestLogEntry {
      * @memberof RequestLogEntry
      */
     suppressedCount?: number;
+    /**
+     * The model the request asked for. Always present; equal to `model` unless a backup model was tried.
+     * @type {string}
+     * @memberof RequestLogEntry
+     */
+    requestedModel?: string;
+    /**
+     * The model that produced the response. Omitted when no model served (a failed or rejected call). When a backup served, `model` is this model and the row is billed at its price.
+     * @type {string}
+     * @memberof RequestLogEntry
+     */
+    servedModel?: string;
+    /**
+     * Set when backup models were tried: the requested model's public error code (for example `upstream_timeout`). Rows with it set are the ones `fallback=true` returns.
+     * @type {string}
+     * @memberof RequestLogEntry
+     */
+    fallbackReason?: string;
+    /**
+     * Present when backup models were tried: every model the request went through, in order, including skipped backups. Upstream providers are never named.
+     * @type {Array<RequestAttempt>}
+     * @memberof RequestLogEntry
+     */
+    attempts?: Array<RequestAttempt>;
 }
 
 
@@ -261,6 +293,10 @@ export function RequestLogEntryFromJSONTyped(json: any, ignoreDiscriminator: boo
         'imageCount': json['image_count'] == null ? undefined : json['image_count'],
         'videoSeconds': json['video_seconds'] == null ? undefined : json['video_seconds'],
         'suppressedCount': json['suppressed_count'] == null ? undefined : json['suppressed_count'],
+        'requestedModel': json['requested_model'] == null ? undefined : json['requested_model'],
+        'servedModel': json['served_model'] == null ? undefined : json['served_model'],
+        'fallbackReason': json['fallback_reason'] == null ? undefined : json['fallback_reason'],
+        'attempts': json['attempts'] == null ? undefined : ((json['attempts'] as Array<any>).map(RequestAttemptFromJSON)),
     };
 }
 
@@ -302,6 +338,10 @@ export function RequestLogEntryToJSONTyped(value?: RequestLogEntry | null, ignor
         'image_count': value['imageCount'],
         'video_seconds': value['videoSeconds'],
         'suppressed_count': value['suppressedCount'],
+        'requested_model': value['requestedModel'],
+        'served_model': value['servedModel'],
+        'fallback_reason': value['fallbackReason'],
+        'attempts': value['attempts'] == null ? undefined : ((value['attempts'] as Array<any>).map(RequestAttemptToJSON)),
     };
 }
 

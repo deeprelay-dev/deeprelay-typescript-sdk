@@ -335,7 +335,7 @@ export class ApiKeysApi extends runtime.BaseAPI {
     }
 
     /**
-     * Changes a key\'s name, budget, model allowlist, rate limit or expiry. An absent field is left unchanged; an explicit `null` clears `budget_cents`, `allowed_models` or `expires_at`. `scopes` cannot be changed after minting, and unknown fields are refused (422), so a typo never looks like a successful change. Requires the `keys:manage` capability (403 `keys_manage_required` otherwise); a member can only change keys they created. 
+     * Changes a key\'s name, budget, model allowlist, backup models, rate limit or expiry. An absent field is left unchanged; an explicit `null` clears `budget_cents`, `allowed_models`, `fallback_models` or `expires_at`. `scopes` cannot be changed after minting, and unknown fields are refused (422), so a typo never looks like a successful change. Requires the `keys:manage` capability (403 `keys_manage_required` otherwise); a member can only change keys they created. 
      * Update an API key\'s name or limits
      */
     async updateApiKeyRaw(requestParameters: UpdateApiKeyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiKey>> {
@@ -346,7 +346,7 @@ export class ApiKeysApi extends runtime.BaseAPI {
     }
 
     /**
-     * Changes a key\'s name, budget, model allowlist, rate limit or expiry. An absent field is left unchanged; an explicit `null` clears `budget_cents`, `allowed_models` or `expires_at`. `scopes` cannot be changed after minting, and unknown fields are refused (422), so a typo never looks like a successful change. Requires the `keys:manage` capability (403 `keys_manage_required` otherwise); a member can only change keys they created. 
+     * Changes a key\'s name, budget, model allowlist, backup models, rate limit or expiry. An absent field is left unchanged; an explicit `null` clears `budget_cents`, `allowed_models`, `fallback_models` or `expires_at`. `scopes` cannot be changed after minting, and unknown fields are refused (422), so a typo never looks like a successful change. Requires the `keys:manage` capability (403 `keys_manage_required` otherwise); a member can only change keys they created. 
      * Update an API key\'s name or limits
      */
     async updateApiKey(requestParameters: UpdateApiKeyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiKey> {

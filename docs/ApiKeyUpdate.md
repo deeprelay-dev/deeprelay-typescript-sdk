@@ -1,7 +1,7 @@
 
 # ApiKeyUpdate
 
-Send only the fields to change. `null` clears `budget_cents`, `allowed_models` or `expires_at`. `scopes` cannot be changed.
+Send only the fields to change. `null` clears `budget_cents`, `allowed_models`, `fallback_models` or `expires_at`. `scopes` cannot be changed.
 
 ## Properties
 
@@ -10,6 +10,7 @@ Name | Type
 `name` | string
 `budgetCents` | number
 `allowedModels` | Array&lt;string&gt;
+`fallbackModels` | Array&lt;string&gt;
 `rateLimitRps` | number
 `rateLimitBurst` | number
 `expiresAt` | Date
@@ -24,6 +25,7 @@ const example = {
   "name": null,
   "budgetCents": null,
   "allowedModels": null,
+  "fallbackModels": null,
   "rateLimitRps": null,
   "rateLimitBurst": null,
   "expiresAt": null,

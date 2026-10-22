@@ -34,6 +34,10 @@ Name | Type
 `imageCount` | number
 `videoSeconds` | number
 `suppressedCount` | number
+`requestedModel` | string
+`servedModel` | string
+`fallbackReason` | string
+`attempts` | [Array&lt;RequestAttempt&gt;](RequestAttempt.md)
 
 ## Example
 
@@ -69,6 +73,10 @@ const example = {
   "imageCount": null,
   "videoSeconds": null,
   "suppressedCount": null,
+  "requestedModel": null,
+  "servedModel": null,
+  "fallbackReason": null,
+  "attempts": null,
 } satisfies RequestLogEntry
 
 console.log(example)

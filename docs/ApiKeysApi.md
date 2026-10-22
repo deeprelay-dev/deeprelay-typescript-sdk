@@ -311,7 +311,7 @@ example().catch(console.error);
 
 Update an API key\&#39;s name or limits
 
-Changes a key\&#39;s name, budget, model allowlist, rate limit or expiry. An absent field is left unchanged; an explicit &#x60;null&#x60; clears &#x60;budget_cents&#x60;, &#x60;allowed_models&#x60; or &#x60;expires_at&#x60;. &#x60;scopes&#x60; cannot be changed after minting, and unknown fields are refused (422), so a typo never looks like a successful change. Requires the &#x60;keys:manage&#x60; capability (403 &#x60;keys_manage_required&#x60; otherwise); a member can only change keys they created. 
+Changes a key\&#39;s name, budget, model allowlist, backup models, rate limit or expiry. An absent field is left unchanged; an explicit &#x60;null&#x60; clears &#x60;budget_cents&#x60;, &#x60;allowed_models&#x60;, &#x60;fallback_models&#x60; or &#x60;expires_at&#x60;. &#x60;scopes&#x60; cannot be changed after minting, and unknown fields are refused (422), so a typo never looks like a successful change. Requires the &#x60;keys:manage&#x60; capability (403 &#x60;keys_manage_required&#x60; otherwise); a member can only change keys they created. 
 
 ### Example
 

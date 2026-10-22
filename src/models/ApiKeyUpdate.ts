@@ -14,7 +14,7 @@
 
 import { mapValues } from '../runtime';
 /**
- * Send only the fields to change. `null` clears `budget_cents`, `allowed_models` or `expires_at`. `scopes` cannot be changed.
+ * Send only the fields to change. `null` clears `budget_cents`, `allowed_models`, `fallback_models` or `expires_at`. `scopes` cannot be changed.
  * @export
  * @interface ApiKeyUpdate
  */
@@ -37,6 +37,12 @@ export interface ApiKeyUpdate {
      * @memberof ApiKeyUpdate
      */
     allowedModels?: Array<string> | null;
+    /**
+     * Replace the backup list (priority order), or `null` to turn model fallback off. Same rules as on create, judged against the key's allowlist after this update. An empty array is a 422 `validation_failed`; send `null` instead.
+     * @type {Array<string>}
+     * @memberof ApiKeyUpdate
+     */
+    fallbackModels?: Array<string> | null;
     /**
      * 
      * @type {number}
@@ -77,6 +83,7 @@ export function ApiKeyUpdateFromJSONTyped(json: any, ignoreDiscriminator: boolea
         'name': json['name'] == null ? undefined : json['name'],
         'budgetCents': json['budget_cents'] === undefined ? undefined : json['budget_cents'] === null ? null : json['budget_cents'],
         'allowedModels': json['allowed_models'] === undefined ? undefined : json['allowed_models'] === null ? null : json['allowed_models'],
+        'fallbackModels': json['fallback_models'] === undefined ? undefined : json['fallback_models'] === null ? null : json['fallback_models'],
         'rateLimitRps': json['rate_limit_rps'] == null ? undefined : json['rate_limit_rps'],
         'rateLimitBurst': json['rate_limit_burst'] == null ? undefined : json['rate_limit_burst'],
         'expiresAt': json['expires_at'] === undefined ? undefined : json['expires_at'] === null ? null : (new Date(json['expires_at'])),
@@ -97,6 +104,7 @@ export function ApiKeyUpdateToJSONTyped(value?: ApiKeyUpdate | null, ignoreDiscr
         'name': value['name'],
         'budget_cents': value['budgetCents'],
         'allowed_models': value['allowedModels'],
+        'fallback_models': value['fallbackModels'],
         'rate_limit_rps': value['rateLimitRps'],
         'rate_limit_burst': value['rateLimitBurst'],
         'expires_at': value['expiresAt'] == null ? value['expiresAt'] : value['expiresAt'].toISOString(),

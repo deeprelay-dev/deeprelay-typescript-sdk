@@ -44,6 +44,12 @@ export interface ApiKeyCreate {
      */
     allowedModels?: Array<string>;
     /**
+     * Backup models in priority order. Omit it to leave model fallback off. Each entry must be a chat model in the catalog and, when the key has `allowed_models`, on that list. Duplicates are removed. An empty array, more than 3 models or an invalid entry is a 422 `validation_failed` naming the `fallback_models` field.
+     * @type {Array<string>}
+     * @memberof ApiKeyCreate
+     */
+    fallbackModels?: Array<string>;
+    /**
      * 
      * @type {number}
      * @memberof ApiKeyCreate
@@ -86,6 +92,7 @@ export function ApiKeyCreateFromJSONTyped(json: any, ignoreDiscriminator: boolea
         'scopes': json['scopes'],
         'budgetCents': json['budget_cents'] == null ? undefined : json['budget_cents'],
         'allowedModels': json['allowed_models'] == null ? undefined : json['allowed_models'],
+        'fallbackModels': json['fallback_models'] == null ? undefined : json['fallback_models'],
         'rateLimitRps': json['rate_limit_rps'] == null ? undefined : json['rate_limit_rps'],
         'rateLimitBurst': json['rate_limit_burst'] == null ? undefined : json['rate_limit_burst'],
         'expiresAt': json['expires_at'] == null ? undefined : (new Date(json['expires_at'])),
@@ -107,6 +114,7 @@ export function ApiKeyCreateToJSONTyped(value?: ApiKeyCreate | null, ignoreDiscr
         'scopes': value['scopes'],
         'budget_cents': value['budgetCents'],
         'allowed_models': value['allowedModels'],
+        'fallback_models': value['fallbackModels'],
         'rate_limit_rps': value['rateLimitRps'],
         'rate_limit_burst': value['rateLimitBurst'],
         'expires_at': value['expiresAt'] == null ? value['expiresAt'] : value['expiresAt'].toISOString(),

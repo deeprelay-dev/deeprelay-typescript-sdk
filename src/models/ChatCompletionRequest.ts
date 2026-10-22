@@ -62,6 +62,12 @@ export interface ChatCompletionRequest {
      */
     model: string;
     /**
+     * OpenRouter-compatible backup models for this request. `model` is the requested model and `models` lists the backups in priority order; when `model` is empty, the first entry of `models` is the requested model. An entry naming the requested model is ignored. At most 3 backups. The list replaces the API key's `fallback_models` for this request, and an empty array turns model fallback off for this request. Each backup must still pass the key's model allowlist, the request's billing mode and its capability needs, or it is skipped. Sending both `models` and the X-Deeprelay-Fallback-Models header is a 400 `invalid_request`. Chat completions only; on `/messages` and `/responses` use the header.
+     * @type {Array<string>}
+     * @memberof ChatCompletionRequest
+     */
+    models?: Array<string> | null;
+    /**
      * 
      * @type {Array<ChatMessage>}
      * @memberof ChatCompletionRequest
@@ -186,6 +192,7 @@ export function ChatCompletionRequestFromJSONTyped(json: any, ignoreDiscriminato
     return {
         
         'model': json['model'],
+        'models': json['models'] === undefined ? undefined : json['models'] === null ? null : json['models'],
         'messages': ((json['messages'] as Array<any>).map(ChatMessageFromJSON)),
         'temperature': json['temperature'] == null ? undefined : json['temperature'],
         'maxTokens': json['max_tokens'] == null ? undefined : json['max_tokens'],
@@ -217,6 +224,7 @@ export function ChatCompletionRequestToJSONTyped(value?: ChatCompletionRequest |
     return {
         
         'model': value['model'],
+        'models': value['models'],
         'messages': ((value['messages'] as Array<any>).map(ChatMessageToJSON)),
         'temperature': value['temperature'],
         'max_tokens': value['maxTokens'],

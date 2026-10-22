@@ -7,6 +7,7 @@
 Name | Type
 ------------ | -------------
 `model` | string
+`models` | Array&lt;string&gt;
 `messages` | [Array&lt;ChatMessage&gt;](ChatMessage.md)
 `temperature` | number
 `maxTokens` | number
@@ -32,6 +33,7 @@ import type { ChatCompletionRequest } from '@deeprelay/sdk'
 // TODO: Update the object below with actual values
 const example = {
   "model": null,
+  "models": null,
   "messages": null,
   "temperature": null,
   "maxTokens": null,

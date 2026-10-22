@@ -20,6 +20,13 @@ import {
     ApiKeyScopesToJSON,
     ApiKeyScopesToJSONTyped,
 } from './ApiKeyScopes';
+import type { ApiKeyFallbackEntry } from './ApiKeyFallbackEntry';
+import {
+    ApiKeyFallbackEntryFromJSON,
+    ApiKeyFallbackEntryFromJSONTyped,
+    ApiKeyFallbackEntryToJSON,
+    ApiKeyFallbackEntryToJSONTyped,
+} from './ApiKeyFallbackEntry';
 
 /**
  * An API key's metadata and limits. Never carries the secret.
@@ -88,6 +95,24 @@ export interface ApiKey {
      */
     staleModels?: Array<string>;
     /**
+     * Backup models in priority order, applied to every model this key calls. Null means model fallback is off (the default). If every provider for the requested model fails before the first token with a temporary error, the next entry is tried. Entries are kept when a model leaves the plan roster or the catalog and are skipped at request time; see `fallback_entries`. Not applied to Liquid.
+     * @type {Array<string>}
+     * @memberof ApiKey
+     */
+    fallbackModels: Array<string> | null;
+    /**
+     * Present when `fallback_models` is set: one entry per backup, in order, explaining it as of now.
+     * @type {Array<ApiKeyFallbackEntry>}
+     * @memberof ApiKey
+     */
+    fallbackEntries?: Array<ApiKeyFallbackEntry>;
+    /**
+     * The model this key requested most over the last 30 days, which `above_primary` is measured against. Present only for a key with `fallback_models` and recent usage.
+     * @type {string}
+     * @memberof ApiKey
+     */
+    primaryModel?: string;
+    /**
      * 
      * @type {number}
      * @memberof ApiKey
@@ -136,6 +161,7 @@ export function instanceOfApiKey(value: object): value is ApiKey {
     if (!('scopes' in value) || value['scopes'] === undefined) return false;
     if ((!('budgetCents' in (value as Record<string, any>)) && !('budget_cents' in (value as Record<string, any>))) || ((value as Record<string, any>)['budgetCents'] === undefined && (value as Record<string, any>)['budget_cents'] === undefined)) return false;
     if ((!('allowedModels' in (value as Record<string, any>)) && !('allowed_models' in (value as Record<string, any>))) || ((value as Record<string, any>)['allowedModels'] === undefined && (value as Record<string, any>)['allowed_models'] === undefined)) return false;
+    if ((!('fallbackModels' in (value as Record<string, any>)) && !('fallback_models' in (value as Record<string, any>))) || ((value as Record<string, any>)['fallbackModels'] === undefined && (value as Record<string, any>)['fallback_models'] === undefined)) return false;
     if ((!('rateLimitRps' in (value as Record<string, any>)) && !('rate_limit_rps' in (value as Record<string, any>))) || ((value as Record<string, any>)['rateLimitRps'] === undefined && (value as Record<string, any>)['rate_limit_rps'] === undefined)) return false;
     if ((!('rateLimitBurst' in (value as Record<string, any>)) && !('rate_limit_burst' in (value as Record<string, any>))) || ((value as Record<string, any>)['rateLimitBurst'] === undefined && (value as Record<string, any>)['rate_limit_burst'] === undefined)) return false;
     if ((!('expiresAt' in (value as Record<string, any>)) && !('expires_at' in (value as Record<string, any>))) || ((value as Record<string, any>)['expiresAt'] === undefined && (value as Record<string, any>)['expires_at'] === undefined)) return false;
@@ -164,6 +190,9 @@ export function ApiKeyFromJSONTyped(json: any, ignoreDiscriminator: boolean): Ap
         'budgetResetsAt': json['budget_resets_at'] == null ? undefined : (new Date(json['budget_resets_at'])),
         'allowedModels': json['allowed_models'] == null ? null : json['allowed_models'],
         'staleModels': json['stale_models'] == null ? undefined : json['stale_models'],
+        'fallbackModels': json['fallback_models'] == null ? null : json['fallback_models'],
+        'fallbackEntries': json['fallback_entries'] == null ? undefined : ((json['fallback_entries'] as Array<any>).map(ApiKeyFallbackEntryFromJSON)),
+        'primaryModel': json['primary_model'] == null ? undefined : json['primary_model'],
         'rateLimitRps': json['rate_limit_rps'],
         'rateLimitBurst': json['rate_limit_burst'],
         'expiresAt': (json['expires_at'] == null ? null : new Date(json['expires_at'])),
@@ -194,6 +223,9 @@ export function ApiKeyToJSONTyped(value?: ApiKey | null, ignoreDiscriminator: bo
         'budget_resets_at': value['budgetResetsAt'] == null ? value['budgetResetsAt'] : value['budgetResetsAt'].toISOString(),
         'allowed_models': value['allowedModels'],
         'stale_models': value['staleModels'],
+        'fallback_models': value['fallbackModels'],
+        'fallback_entries': value['fallbackEntries'] == null ? undefined : ((value['fallbackEntries'] as Array<any>).map(ApiKeyFallbackEntryToJSON)),
+        'primary_model': value['primaryModel'],
         'rate_limit_rps': value['rateLimitRps'],
         'rate_limit_burst': value['rateLimitBurst'],
         'expires_at': value['expiresAt'] == null ? value['expiresAt'] : value['expiresAt'].toISOString(),

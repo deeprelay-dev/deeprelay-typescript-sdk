@@ -8,6 +8,7 @@ docs/AlertsApi.md
 docs/ApiKey.md
 docs/ApiKeyCreate.md
 docs/ApiKeyCreated.md
+docs/ApiKeyFallbackEntry.md
 docs/ApiKeyList.md
 docs/ApiKeyScopes.md
 docs/ApiKeyUpdate.md
@@ -51,6 +52,7 @@ docs/PeakWindow.md
 docs/Problem.md
 docs/RefereeStatus.md
 docs/Referral.md
+docs/RequestAttempt.md
 docs/RequestLogEntry.md
 docs/RequestLogPage.md
 docs/RequestsApi.md
@@ -107,6 +109,7 @@ src/models/AlertSettingsUpdate.ts
 src/models/ApiKey.ts
 src/models/ApiKeyCreate.ts
 src/models/ApiKeyCreated.ts
+src/models/ApiKeyFallbackEntry.ts
 src/models/ApiKeyList.ts
 src/models/ApiKeyScopes.ts
 src/models/ApiKeyUpdate.ts
@@ -146,6 +149,7 @@ src/models/PeakWindow.ts
 src/models/Problem.ts
 src/models/RefereeStatus.ts
 src/models/Referral.ts
+src/models/RequestAttempt.ts
 src/models/RequestLogEntry.ts
 src/models/RequestLogPage.ts
 src/models/ResponseFormatJSONObject.ts

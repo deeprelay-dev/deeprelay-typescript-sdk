@@ -38,6 +38,7 @@ export interface ExportRequestsRequest {
     clientRequestId?: string;
     from?: Date;
     to?: Date;
+    fallback?: boolean;
 }
 
 export interface GetRequestRequest {
@@ -53,6 +54,7 @@ export interface ListRequestsRequest {
     clientRequestId?: string;
     from?: Date;
     to?: Date;
+    fallback?: boolean;
     cursor?: string;
     limit?: number;
 }
@@ -100,6 +102,10 @@ export class RequestsApi extends runtime.BaseAPI {
             queryParameters['to'] = (requestParameters['to'] as any).toISOString();
         }
 
+        if (requestParameters['fallback'] != null) {
+            queryParameters['fallback'] = requestParameters['fallback'];
+        }
+
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.accessToken) {
@@ -122,7 +128,7 @@ export class RequestsApi extends runtime.BaseAPI {
     }
 
     /**
-     * Streams every request-log row matching the filters as a CSV attachment, oldest columns first: `request_id, client_request_id, occurred_at, surface, model, key_id, key_name, key_prefix, status, http_status, error_code, finish_reason, prompt_tokens, completion_tokens, cached_tokens, reasoning_tokens, quota_units, cost, plan_covered, ttft_ms, duration_ms, ignored_params`. Takes the same filters and visibility rules as `GET /requests`, without the cursor and limit.  The export is counted before anything is written. When the filters match more rows than the export cap, the answer is 422 `export_too_large` and the problem body carries `max_rows`; narrow the time range or add a filter, then export again.  Requires the `serverless:read` scope. Exports have their own, tighter per-key rate limit. 
+     * Streams every request-log row matching the filters as a CSV attachment, oldest columns first: `request_id, client_request_id, occurred_at, surface, model, key_id, key_name, key_prefix, status, http_status, error_code, finish_reason, prompt_tokens, completion_tokens, cached_tokens, reasoning_tokens, quota_units, cost, plan_covered, ttft_ms, duration_ms, ignored_params, requested_model, served_model, fallback_reason`. Takes the same filters and visibility rules as `GET /requests`, without the cursor and limit.  The export is counted before anything is written. When the filters match more rows than the export cap, the answer is 422 `export_too_large` and the problem body carries `max_rows`; narrow the time range or add a filter, then export again.  Requires the `serverless:read` scope. Exports have their own, tighter per-key rate limit. 
      * Export the request log as CSV
      */
     async exportRequestsRaw(requestParameters: ExportRequestsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
@@ -137,7 +143,7 @@ export class RequestsApi extends runtime.BaseAPI {
     }
 
     /**
-     * Streams every request-log row matching the filters as a CSV attachment, oldest columns first: `request_id, client_request_id, occurred_at, surface, model, key_id, key_name, key_prefix, status, http_status, error_code, finish_reason, prompt_tokens, completion_tokens, cached_tokens, reasoning_tokens, quota_units, cost, plan_covered, ttft_ms, duration_ms, ignored_params`. Takes the same filters and visibility rules as `GET /requests`, without the cursor and limit.  The export is counted before anything is written. When the filters match more rows than the export cap, the answer is 422 `export_too_large` and the problem body carries `max_rows`; narrow the time range or add a filter, then export again.  Requires the `serverless:read` scope. Exports have their own, tighter per-key rate limit. 
+     * Streams every request-log row matching the filters as a CSV attachment, oldest columns first: `request_id, client_request_id, occurred_at, surface, model, key_id, key_name, key_prefix, status, http_status, error_code, finish_reason, prompt_tokens, completion_tokens, cached_tokens, reasoning_tokens, quota_units, cost, plan_covered, ttft_ms, duration_ms, ignored_params, requested_model, served_model, fallback_reason`. Takes the same filters and visibility rules as `GET /requests`, without the cursor and limit.  The export is counted before anything is written. When the filters match more rows than the export cap, the answer is 422 `export_too_large` and the problem body carries `max_rows`; narrow the time range or add a filter, then export again.  Requires the `serverless:read` scope. Exports have their own, tighter per-key rate limit. 
      * Export the request log as CSV
      */
     async exportRequests(requestParameters: ExportRequestsRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
@@ -236,6 +242,10 @@ export class RequestsApi extends runtime.BaseAPI {
 
         if (requestParameters['to'] != null) {
             queryParameters['to'] = (requestParameters['to'] as any).toISOString();
+        }
+
+        if (requestParameters['fallback'] != null) {
+            queryParameters['fallback'] = requestParameters['fallback'];
         }
 
         if (requestParameters['cursor'] != null) {

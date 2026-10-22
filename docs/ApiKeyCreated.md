@@ -17,6 +17,9 @@ Name | Type
 `budgetResetsAt` | Date
 `allowedModels` | Array&lt;string&gt;
 `staleModels` | Array&lt;string&gt;
+`fallbackModels` | Array&lt;string&gt;
+`fallbackEntries` | [Array&lt;ApiKeyFallbackEntry&gt;](ApiKeyFallbackEntry.md)
+`primaryModel` | string
 `rateLimitRps` | number
 `rateLimitBurst` | number
 `expiresAt` | Date
@@ -42,6 +45,9 @@ const example = {
   "budgetResetsAt": null,
   "allowedModels": null,
   "staleModels": null,
+  "fallbackModels": null,
+  "fallbackEntries": null,
+  "primaryModel": null,
   "rateLimitRps": null,
   "rateLimitBurst": null,
   "expiresAt": null,
