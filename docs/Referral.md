@@ -16,6 +16,7 @@ Name | Type
 `commissionEarnedCents` | number
 `rewardCents` | number
 `refereeRewardCents` | number
+`qualifyDepositCents` | number
 `qualifySpendCents` | number
 `holdDays` | number
 `commissionPct` | number
@@ -37,6 +38,7 @@ const example = {
   "commissionEarnedCents": null,
   "rewardCents": null,
   "refereeRewardCents": null,
+  "qualifyDepositCents": null,
   "qualifySpendCents": null,
   "holdDays": null,
   "commissionPct": null,

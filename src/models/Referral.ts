@@ -41,13 +41,13 @@ export interface Referral {
      */
     inviteUrl: string;
     /**
-     * Friends who signed up through the link but have not yet reached the spend gate.
+     * Friends who signed up through the link but have not yet reached the qualifying deposit.
      * @type {number}
      * @memberof Referral
      */
     pending: number;
     /**
-     * Friends past the spend gate whose reward is inside the chargeback hold.
+     * Friends past the qualifying deposit whose reward is inside the chargeback hold.
      * @type {number}
      * @memberof Referral
      */
@@ -83,9 +83,16 @@ export interface Referral {
      */
     refereeRewardCents: number;
     /**
-     * The friend's cumulative inference spend that qualifies a referral.
+     * The friend's cumulative net real deposits (card, auto-pay and crypto, less refunds) that qualify a referral.
      * @type {number}
      * @memberof Referral
+     */
+    qualifyDepositCents?: number;
+    /**
+     * Deprecated — referrals now qualify on deposits. Mirrors `qualify_deposit_cents`.
+     * @type {number}
+     * @memberof Referral
+     * @deprecated
      */
     qualifySpendCents: number;
     /**
@@ -146,6 +153,7 @@ export function ReferralFromJSONTyped(json: any, ignoreDiscriminator: boolean): 
         'commissionEarnedCents': json['commission_earned_cents'],
         'rewardCents': json['reward_cents'],
         'refereeRewardCents': json['referee_reward_cents'],
+        'qualifyDepositCents': json['qualify_deposit_cents'] == null ? undefined : json['qualify_deposit_cents'],
         'qualifySpendCents': json['qualify_spend_cents'],
         'holdDays': json['hold_days'],
         'commissionPct': json['commission_pct'],
@@ -173,6 +181,7 @@ export function ReferralToJSONTyped(value?: Referral | null, ignoreDiscriminator
         'commission_earned_cents': value['commissionEarnedCents'],
         'reward_cents': value['rewardCents'],
         'referee_reward_cents': value['refereeRewardCents'],
+        'qualify_deposit_cents': value['qualifyDepositCents'],
         'qualify_spend_cents': value['qualifySpendCents'],
         'hold_days': value['holdDays'],
         'commission_pct': value['commissionPct'],

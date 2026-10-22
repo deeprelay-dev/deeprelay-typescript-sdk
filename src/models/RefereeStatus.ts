@@ -21,21 +21,41 @@ import { mapValues } from '../runtime';
  */
 export interface RefereeStatus {
     /**
-     * Lifecycle state. `pending` until the spend gate is met; `qualified` inside the hold; `settled` once paid.
+     * Lifecycle state. `pending` until the gate is met; `qualified` inside the hold; `settled` once paid; `reversed` when the qualifying deposit was refunded after payout and both rewards were taken back.
      * @type {RefereeStatusStatusEnum}
      * @memberof RefereeStatus
      */
     status: RefereeStatusStatusEnum;
     /**
-     * Cumulative inference spend so far.
+     * What qualifies this referral. `deposit` (net real deposits) for current referrals; `spend` (inference usage) for referrals made under the earlier program, which keep their original terms.
+     * @type {RefereeStatusGateEnum}
+     * @memberof RefereeStatus
+     */
+    gate?: RefereeStatusGateEnum;
+    /**
+     * Progress toward the gate so far — net deposits for `deposit`, inference spend for `spend`.
      * @type {number}
      * @memberof RefereeStatus
      */
-    spentCents: number;
+    progressCents?: number;
     /**
-     * The spend that qualifies the referral.
+     * The amount that qualifies the referral.
      * @type {number}
      * @memberof RefereeStatus
+     */
+    goalCents?: number;
+    /**
+     * Deprecated alias of `progress_cents`.
+     * @type {number}
+     * @memberof RefereeStatus
+     * @deprecated
+     */
+    spentCents: number;
+    /**
+     * Deprecated alias of `goal_cents`.
+     * @type {number}
+     * @memberof RefereeStatus
+     * @deprecated
      */
     qualifySpendCents: number;
     /**
@@ -45,7 +65,7 @@ export interface RefereeStatus {
      */
     rewardCents: number;
     /**
-     * When the spend gate was met. Absent while pending.
+     * When the gate was met. Absent while pending.
      * @type {Date}
      * @memberof RefereeStatus
      */
@@ -72,9 +92,19 @@ export const RefereeStatusStatusEnum = {
     Pending: 'pending',
     Qualified: 'qualified',
     Settled: 'settled',
-    Rejected: 'rejected'
+    Rejected: 'rejected',
+    Reversed: 'reversed'
 } as const;
 export type RefereeStatusStatusEnum = typeof RefereeStatusStatusEnum[keyof typeof RefereeStatusStatusEnum];
+
+/**
+ * @export
+ */
+export const RefereeStatusGateEnum = {
+    Deposit: 'deposit',
+    Spend: 'spend'
+} as const;
+export type RefereeStatusGateEnum = typeof RefereeStatusGateEnum[keyof typeof RefereeStatusGateEnum];
 
 
 /**
@@ -99,6 +129,9 @@ export function RefereeStatusFromJSONTyped(json: any, ignoreDiscriminator: boole
     return {
         
         'status': json['status'],
+        'gate': json['gate'] == null ? undefined : json['gate'],
+        'progressCents': json['progress_cents'] == null ? undefined : json['progress_cents'],
+        'goalCents': json['goal_cents'] == null ? undefined : json['goal_cents'],
         'spentCents': json['spent_cents'],
         'qualifySpendCents': json['qualify_spend_cents'],
         'rewardCents': json['reward_cents'],
@@ -120,6 +153,9 @@ export function RefereeStatusToJSONTyped(value?: RefereeStatus | null, ignoreDis
     return {
         
         'status': value['status'],
+        'gate': value['gate'],
+        'progress_cents': value['progressCents'],
+        'goal_cents': value['goalCents'],
         'spent_cents': value['spentCents'],
         'qualify_spend_cents': value['qualifySpendCents'],
         'reward_cents': value['rewardCents'],

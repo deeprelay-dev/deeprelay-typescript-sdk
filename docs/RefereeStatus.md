@@ -8,6 +8,9 @@ Present only when the organization signed up through someone else\'s invite link
 Name | Type
 ------------ | -------------
 `status` | string
+`gate` | string
+`progressCents` | number
+`goalCents` | number
 `spentCents` | number
 `qualifySpendCents` | number
 `rewardCents` | number
@@ -23,6 +26,9 @@ import type { RefereeStatus } from '@deeprelay/sdk'
 // TODO: Update the object below with actual values
 const example = {
   "status": null,
+  "gate": null,
+  "progressCents": null,
+  "goalCents": null,
   "spentCents": null,
   "qualifySpendCents": null,
   "rewardCents": null,
