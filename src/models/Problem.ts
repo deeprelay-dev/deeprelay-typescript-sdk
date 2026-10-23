@@ -100,6 +100,7 @@ export const ProblemCodeEnum = {
     ModelNotAllowedForKey: 'model_not_allowed_for_key',
     CreatorCheckUnavailable: 'creator_check_unavailable',
     SwitchRenewalUnpaid: 'switch_renewal_unpaid',
+    CheckoutPaused: 'checkout_paused',
     InternalError: 'internal_error',
     OperationFailed: 'operation_failed'
 } as const;
