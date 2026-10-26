@@ -86,7 +86,7 @@ example().catch(console.error);
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 | **201** | Created |  -  |
-| **400** | &#x60;validation-error&#x60; — &#x60;amount_cents&#x60; is below the configured minimum. &#x60;unsupported-chain-asset&#x60; — the chain/asset pair is not available. &#x60;invalid-request&#x60; — malformed JSON body.  |  -  |
+| **400** | &#x60;validation-error&#x60; — &#x60;amount_cents&#x60; is below the configured minimum. &#x60;unsupported-chain-asset&#x60; — the chain/asset pair is not available. &#x60;amount-below-minimum&#x60;: the amount is below the network\&#39;s current minimum, which moves with network fees; &#x60;detail&#x60; quotes it when known. Raise the amount or choose another chain. &#x60;invalid-request&#x60; — malformed JSON body.  |  -  |
 | **403** | &#x60;org-frozen&#x60; — the organization cannot add funds; contact support. |  -  |
 | **404** | Error response (RFC 7807) |  -  |
 | **429** | Rate limit exceeded (RFC 7807). Retry-After header indicates seconds to wait. |  * Retry-After - Seconds the client should wait before retrying. <br>  |
