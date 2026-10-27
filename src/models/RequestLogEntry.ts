@@ -154,7 +154,7 @@ export interface RequestLogEntry {
      */
     quotaUnits?: number;
     /**
-     * The exact USD amount billed to the wallet, in the same format as `usage.cost`: an exact decimal with up to 8 places, emitted as a JSON number. `0` for a plan-covered, rejected or failed call.
+     * The call's cost in USD: an exact decimal with up to 8 places, emitted as a JSON number. On a pay-as-you-go row (`plan_covered: false`) it is the amount billed to the wallet, the same figure as `usage.cost`. On a plan-covered row it is the list-price equivalent, not a charge: tokens plus every web search the allowance covered, at the per-search list price; the subscription paid for it. A paid web-search overflow fee is not included; it is in `search_overflow_fee_micro_cents`. `0` for a rejected or failed call.
      * @type {number}
      * @memberof RequestLogEntry
      */
