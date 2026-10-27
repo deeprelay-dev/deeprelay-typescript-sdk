@@ -101,6 +101,12 @@ export interface ModelPricing {
      */
     perVideoSecondMicrocents?: number;
     /**
+     * Pay-as-you-go price of one server-side web search, in micro-cents (1e-6 cent); 200000 is $2.00 per 1,000 searches. Present only on models with `web_search: true`. Charged once per search that returns results, on top of the token cost; a failed search is free. The search results the model reads are ordinary prompt tokens at the input rate. Searches inside a subscriber's monthly allowance are covered by the plan, and searches past it (when the organization opted in on `/search/settings`) bill at the separate overflow price shown there, not at this rate.
+     * @type {number}
+     * @memberof ModelPricing
+     */
+    perSearchMicrocents?: number;
+    /**
      * Present only on a model priced by time of day. Which side of the peak schedule the instant this response was rendered falls on; the flat rate fields above are the rates in effect at that instant. A request is billed at the rate in effect when it ARRIVES (UTC), so a caller planning a call for later should price it from `peak` / `off_peak` and `peak_windows_utc`.
      * @type {ModelPricingPeriodEnum}
      * @memberof ModelPricing
@@ -165,6 +171,7 @@ export function ModelPricingFromJSONTyped(json: any, ignoreDiscriminator: boolea
         'perVideoMicrocents': json['per_video_microcents'] == null ? undefined : json['per_video_microcents'],
         'perVideoSecondCents': json['per_video_second_cents'] == null ? undefined : json['per_video_second_cents'],
         'perVideoSecondMicrocents': json['per_video_second_microcents'] == null ? undefined : json['per_video_second_microcents'],
+        'perSearchMicrocents': json['per_search_microcents'] == null ? undefined : json['per_search_microcents'],
         'period': json['period'] == null ? undefined : json['period'],
         'peakWindowsUtc': json['peak_windows_utc'] == null ? undefined : ((json['peak_windows_utc'] as Array<any>).map(PeakWindowFromJSON)),
         'peak': json['peak'] == null ? undefined : ModelRateFromJSON(json['peak']),
@@ -194,6 +201,7 @@ export function ModelPricingToJSONTyped(value?: ModelPricing | null, ignoreDiscr
         'per_video_microcents': value['perVideoMicrocents'],
         'per_video_second_cents': value['perVideoSecondCents'],
         'per_video_second_microcents': value['perVideoSecondMicrocents'],
+        'per_search_microcents': value['perSearchMicrocents'],
         'period': value['period'],
         'peak_windows_utc': value['peakWindowsUtc'] == null ? undefined : ((value['peakWindowsUtc'] as Array<any>).map(PeakWindowToJSON)),
         'peak': ModelRateToJSON(value['peak']),

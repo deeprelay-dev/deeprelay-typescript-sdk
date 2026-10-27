@@ -11,6 +11,7 @@ Name | Type
 `outputTokensMonthly` | number
 `weeklyInputTokens` | number
 `weeklyOutputTokens` | number
+`searchesMonthly` | number
 `maxUsageMicroCents` | number
 `paygDiscountBp` | number
 
@@ -25,6 +26,7 @@ const example = {
   "outputTokensMonthly": null,
   "weeklyInputTokens": null,
   "weeklyOutputTokens": null,
+  "searchesMonthly": null,
   "maxUsageMicroCents": null,
   "paygDiscountBp": null,
 } satisfies SubscriptionQuota

@@ -124,6 +124,30 @@ export interface RequestLogEntry {
      */
     reasoningTokens?: number;
     /**
+     * Server-side web searches billed on this call (failed searches are not counted). Omitted when the call ran none.
+     * @type {number}
+     * @memberof RequestLogEntry
+     */
+    searchCount?: number;
+    /**
+     * The subset of `search_count` that ran past the plan's monthly search allowance and was billed to the wallet (the organization opted in on `/search/settings`). Never greater than `search_count`. Omitted when none did.
+     * @type {number}
+     * @memberof RequestLogEntry
+     */
+    searchOverflowCount?: number;
+    /**
+     * The subset of `prompt_tokens` that were web-search results fed back to the model. Already counted in `prompt_tokens`; do not add them again. Omitted when the call ran no search.
+     * @type {number}
+     * @memberof RequestLogEntry
+     */
+    searchResultTokens?: number;
+    /**
+     * The wallet charge, in micro-cents, for this call's `search_overflow_count` searches at the overflow price. It is a field of this request, not a separate request: the log never lists the fee as its own row. Omitted when there was no overflow fee.
+     * @type {number}
+     * @memberof RequestLogEntry
+     */
+    searchOverflowFeeMicroCents?: number;
+    /**
      * Weighted tokens drawn from the subscription quota.
      * @type {number}
      * @memberof RequestLogEntry
@@ -282,6 +306,10 @@ export function RequestLogEntryFromJSONTyped(json: any, ignoreDiscriminator: boo
         'completionTokens': json['completion_tokens'] == null ? undefined : json['completion_tokens'],
         'cachedTokens': json['cached_tokens'] == null ? undefined : json['cached_tokens'],
         'reasoningTokens': json['reasoning_tokens'] == null ? undefined : json['reasoning_tokens'],
+        'searchCount': json['search_count'] == null ? undefined : json['search_count'],
+        'searchOverflowCount': json['search_overflow_count'] == null ? undefined : json['search_overflow_count'],
+        'searchResultTokens': json['search_result_tokens'] == null ? undefined : json['search_result_tokens'],
+        'searchOverflowFeeMicroCents': json['search_overflow_fee_micro_cents'] == null ? undefined : json['search_overflow_fee_micro_cents'],
         'quotaUnits': json['quota_units'] == null ? undefined : json['quota_units'],
         'cost': json['cost'],
         'costMicroCents': json['cost_micro_cents'],
@@ -327,6 +355,10 @@ export function RequestLogEntryToJSONTyped(value?: RequestLogEntry | null, ignor
         'completion_tokens': value['completionTokens'],
         'cached_tokens': value['cachedTokens'],
         'reasoning_tokens': value['reasoningTokens'],
+        'search_count': value['searchCount'],
+        'search_overflow_count': value['searchOverflowCount'],
+        'search_result_tokens': value['searchResultTokens'],
+        'search_overflow_fee_micro_cents': value['searchOverflowFeeMicroCents'],
         'quota_units': value['quotaUnits'],
         'cost': value['cost'],
         'cost_micro_cents': value['costMicroCents'],

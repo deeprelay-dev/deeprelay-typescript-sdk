@@ -47,6 +47,12 @@ export interface SubscriptionQuota {
      */
     weeklyOutputTokens: number;
     /**
+     * Server-side web searches included per billing period. When they are used up, further searches return an in-band "allowance exhausted" result to the model and the request still succeeds on the plan, unless the organization opted into overflow on `/search/settings`. 0 means the plan includes no searches.
+     * @type {number}
+     * @memberof SubscriptionQuota
+     */
+    searchesMonthly?: number;
+    /**
      * Per-period backstop on list-price metered cost, in micro-cents (1e-6 cent). 0 means no backstop is configured on this deployment.
      * @type {number}
      * @memberof SubscriptionQuota
@@ -88,6 +94,7 @@ export function SubscriptionQuotaFromJSONTyped(json: any, ignoreDiscriminator: b
         'outputTokensMonthly': json['output_tokens_monthly'],
         'weeklyInputTokens': json['weekly_input_tokens'],
         'weeklyOutputTokens': json['weekly_output_tokens'],
+        'searchesMonthly': json['searches_monthly'] == null ? undefined : json['searches_monthly'],
         'maxUsageMicroCents': json['max_usage_micro_cents'],
         'paygDiscountBp': json['payg_discount_bp'],
     };
@@ -108,6 +115,7 @@ export function SubscriptionQuotaToJSONTyped(value?: SubscriptionQuota | null, i
         'output_tokens_monthly': value['outputTokensMonthly'],
         'weekly_input_tokens': value['weeklyInputTokens'],
         'weekly_output_tokens': value['weeklyOutputTokens'],
+        'searches_monthly': value['searchesMonthly'],
         'max_usage_micro_cents': value['maxUsageMicroCents'],
         'payg_discount_bp': value['paygDiscountBp'],
     };

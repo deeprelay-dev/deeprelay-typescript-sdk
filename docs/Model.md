@@ -17,6 +17,7 @@ Name | Type
 `contextLength` | number
 `maxCompletionTokens` | number
 `supportedParameters` | Array&lt;string&gt;
+`webSearch` | boolean
 `reasoningEfforts` | Array&lt;string&gt;
 `parameters` | [Array&lt;ModelParametersInner&gt;](ModelParametersInner.md)
 `pricing` | [ModelPricing](ModelPricing.md)
@@ -49,6 +50,7 @@ const example = {
   "contextLength": null,
   "maxCompletionTokens": null,
   "supportedParameters": null,
+  "webSearch": null,
   "reasoningEfforts": null,
   "parameters": null,
   "pricing": null,

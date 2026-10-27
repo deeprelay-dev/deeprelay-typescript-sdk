@@ -14,6 +14,7 @@ Name | Type
 `weeklyWeightedInputTokens` | number
 `weeklyWeightedOutputTokens` | number
 `costMicroCents` | number
+`searches` | number
 `recentPaygCalls24h` | number
 `byModel` | [Array&lt;SubscriptionModelUsage&gt;](SubscriptionModelUsage.md)
 `weeklyByModel` | [Array&lt;SubscriptionModelUsage&gt;](SubscriptionModelUsage.md)
@@ -32,6 +33,7 @@ const example = {
   "weeklyWeightedInputTokens": null,
   "weeklyWeightedOutputTokens": null,
   "costMicroCents": null,
+  "searches": null,
   "recentPaygCalls24h": null,
   "byModel": null,
   "weeklyByModel": null,

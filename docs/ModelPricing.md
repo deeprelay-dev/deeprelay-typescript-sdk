@@ -17,6 +17,7 @@ Name | Type
 `perVideoMicrocents` | number
 `perVideoSecondCents` | number
 `perVideoSecondMicrocents` | number
+`perSearchMicrocents` | number
 `period` | string
 `peakWindowsUtc` | [Array&lt;PeakWindow&gt;](PeakWindow.md)
 `peak` | [ModelRate](ModelRate.md)
@@ -40,6 +41,7 @@ const example = {
   "perVideoMicrocents": null,
   "perVideoSecondCents": null,
   "perVideoSecondMicrocents": null,
+  "perSearchMicrocents": null,
   "period": null,
   "peakWindowsUtc": null,
   "peak": null,

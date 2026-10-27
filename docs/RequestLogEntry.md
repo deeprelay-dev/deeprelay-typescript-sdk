@@ -23,6 +23,10 @@ Name | Type
 `completionTokens` | number
 `cachedTokens` | number
 `reasoningTokens` | number
+`searchCount` | number
+`searchOverflowCount` | number
+`searchResultTokens` | number
+`searchOverflowFeeMicroCents` | number
 `quotaUnits` | number
 `cost` | number
 `costMicroCents` | number
@@ -62,6 +66,10 @@ const example = {
   "completionTokens": null,
   "cachedTokens": null,
   "reasoningTokens": null,
+  "searchCount": null,
+  "searchOverflowCount": null,
+  "searchResultTokens": null,
+  "searchOverflowFeeMicroCents": null,
   "quotaUnits": null,
   "cost": null,
   "costMicroCents": null,

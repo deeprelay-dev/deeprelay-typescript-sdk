@@ -73,6 +73,12 @@ export interface SubscriptionUsage {
      */
     costMicroCents: number;
     /**
+     * Plan-covered web searches run this period, against `quota.searches_monthly`. Overflow searches billed to the wallet are not counted here.
+     * @type {number}
+     * @memberof SubscriptionUsage
+     */
+    searches?: number;
+    /**
      * Wallet-billed calls while subscribed, e.g. input-overshoot or quota-gate pay-as-you-go fallbacks and models the plan does not cover. Recent means the last 24 hours, clamped to the current period. Omitted when the count could not be read; its absence means unknown, not zero.
      * @type {number}
      * @memberof SubscriptionUsage
@@ -123,6 +129,7 @@ export function SubscriptionUsageFromJSONTyped(json: any, ignoreDiscriminator: b
         'weeklyWeightedInputTokens': json['weekly_weighted_input_tokens'],
         'weeklyWeightedOutputTokens': json['weekly_weighted_output_tokens'],
         'costMicroCents': json['cost_micro_cents'],
+        'searches': json['searches'] == null ? undefined : json['searches'],
         'recentPaygCalls24h': json['recent_payg_calls_24h'] == null ? undefined : json['recent_payg_calls_24h'],
         'byModel': json['by_model'] == null ? undefined : ((json['by_model'] as Array<any>).map(SubscriptionModelUsageFromJSON)),
         'weeklyByModel': json['weekly_by_model'] == null ? undefined : ((json['weekly_by_model'] as Array<any>).map(SubscriptionModelUsageFromJSON)),
@@ -147,6 +154,7 @@ export function SubscriptionUsageToJSONTyped(value?: SubscriptionUsage | null, i
         'weekly_weighted_input_tokens': value['weeklyWeightedInputTokens'],
         'weekly_weighted_output_tokens': value['weeklyWeightedOutputTokens'],
         'cost_micro_cents': value['costMicroCents'],
+        'searches': value['searches'],
         'recent_payg_calls_24h': value['recentPaygCalls24h'],
         'by_model': value['byModel'] == null ? undefined : ((value['byModel'] as Array<any>).map(SubscriptionModelUsageToJSON)),
         'weekly_by_model': value['weeklyByModel'] == null ? undefined : ((value['weeklyByModel'] as Array<any>).map(SubscriptionModelUsageToJSON)),

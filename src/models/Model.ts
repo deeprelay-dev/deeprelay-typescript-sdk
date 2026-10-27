@@ -108,6 +108,12 @@ export interface Model {
      */
     supportedParameters?: Array<string>;
     /**
+     * Whether the model can run the server-side `web_search` tool on `/messages` and `/responses`: deeprelay runs the search itself and feeds the results back to the model. True exactly where the model supports tool calling. Always present. A request that sends the tool to a model with `web_search: false` is rejected with 400 `web_search_unsupported_model`.
+     * @type {boolean}
+     * @memberof Model
+     */
+    webSearch?: boolean;
+    /**
      * The `reasoning_effort` values this model accepts (for example `none`, `low`, `medium`, `high`), as the catalog lists them. Omitted when the catalog lists none.
      * @type {Array<string>}
      * @memberof Model
@@ -257,6 +263,7 @@ export function ModelFromJSONTyped(json: any, ignoreDiscriminator: boolean): Mod
         'contextLength': json['context_length'] == null ? undefined : json['context_length'],
         'maxCompletionTokens': json['max_completion_tokens'] == null ? undefined : json['max_completion_tokens'],
         'supportedParameters': json['supported_parameters'] == null ? undefined : json['supported_parameters'],
+        'webSearch': json['web_search'] == null ? undefined : json['web_search'],
         'reasoningEfforts': json['reasoning_efforts'] == null ? undefined : json['reasoning_efforts'],
         'parameters': json['parameters'] == null ? undefined : ((json['parameters'] as Array<any>).map(ModelParametersInnerFromJSON)),
         'pricing': ModelPricingFromJSON(json['pricing']),
@@ -295,6 +302,7 @@ export function ModelToJSONTyped(value?: Model | null, ignoreDiscriminator: bool
         'context_length': value['contextLength'],
         'max_completion_tokens': value['maxCompletionTokens'],
         'supported_parameters': value['supportedParameters'],
+        'web_search': value['webSearch'],
         'reasoning_efforts': value['reasoningEfforts'],
         'parameters': value['parameters'] == null ? undefined : ((value['parameters'] as Array<any>).map(ModelParametersInnerToJSON)),
         'pricing': ModelPricingToJSON(value['pricing']),
