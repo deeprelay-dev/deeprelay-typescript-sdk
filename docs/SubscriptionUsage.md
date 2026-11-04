@@ -18,6 +18,7 @@ Name | Type
 `recentPaygCalls24h` | number
 `byModel` | [Array&lt;SubscriptionModelUsage&gt;](SubscriptionModelUsage.md)
 `weeklyByModel` | [Array&lt;SubscriptionModelUsage&gt;](SubscriptionModelUsage.md)
+`paygEstimate` | [SubscriptionPaygEstimate](SubscriptionPaygEstimate.md)
 
 ## Example
 
@@ -37,6 +38,7 @@ const example = {
   "recentPaygCalls24h": null,
   "byModel": null,
   "weeklyByModel": null,
+  "paygEstimate": null,
 } satisfies SubscriptionUsage
 
 console.log(example)

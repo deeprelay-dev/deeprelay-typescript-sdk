@@ -65,6 +65,7 @@ docs/Subscription.md
 docs/SubscriptionCheckoutRequest.md
 docs/SubscriptionCheckoutSession.md
 docs/SubscriptionModelUsage.md
+docs/SubscriptionPaygEstimate.md
 docs/SubscriptionPlan.md
 docs/SubscriptionPortalRequest.md
 docs/SubscriptionPortalSession.md
@@ -162,6 +163,7 @@ src/models/Subscription.ts
 src/models/SubscriptionCheckoutRequest.ts
 src/models/SubscriptionCheckoutSession.ts
 src/models/SubscriptionModelUsage.ts
+src/models/SubscriptionPaygEstimate.ts
 src/models/SubscriptionPlan.ts
 src/models/SubscriptionPortalRequest.ts
 src/models/SubscriptionPortalSession.ts

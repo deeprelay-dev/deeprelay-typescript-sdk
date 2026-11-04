@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
+import type { SubscriptionPaygEstimate } from './SubscriptionPaygEstimate';
+import {
+    SubscriptionPaygEstimateFromJSON,
+    SubscriptionPaygEstimateFromJSONTyped,
+    SubscriptionPaygEstimateToJSON,
+    SubscriptionPaygEstimateToJSONTyped,
+} from './SubscriptionPaygEstimate';
 import type { SubscriptionModelUsage } from './SubscriptionModelUsage';
 import {
     SubscriptionModelUsageFromJSON,
@@ -96,6 +103,12 @@ export interface SubscriptionUsage {
      * @memberof SubscriptionUsage
      */
     weeklyByModel?: Array<SubscriptionModelUsage>;
+    /**
+     * 
+     * @type {SubscriptionPaygEstimate}
+     * @memberof SubscriptionUsage
+     */
+    paygEstimate?: SubscriptionPaygEstimate;
 }
 
 /**
@@ -133,6 +146,7 @@ export function SubscriptionUsageFromJSONTyped(json: any, ignoreDiscriminator: b
         'recentPaygCalls24h': json['recent_payg_calls_24h'] == null ? undefined : json['recent_payg_calls_24h'],
         'byModel': json['by_model'] == null ? undefined : ((json['by_model'] as Array<any>).map(SubscriptionModelUsageFromJSON)),
         'weeklyByModel': json['weekly_by_model'] == null ? undefined : ((json['weekly_by_model'] as Array<any>).map(SubscriptionModelUsageFromJSON)),
+        'paygEstimate': json['payg_estimate'] == null ? undefined : SubscriptionPaygEstimateFromJSON(json['payg_estimate']),
     };
 }
 
@@ -158,6 +172,7 @@ export function SubscriptionUsageToJSONTyped(value?: SubscriptionUsage | null, i
         'recent_payg_calls_24h': value['recentPaygCalls24h'],
         'by_model': value['byModel'] == null ? undefined : ((value['byModel'] as Array<any>).map(SubscriptionModelUsageToJSON)),
         'weekly_by_model': value['weeklyByModel'] == null ? undefined : ((value['weeklyByModel'] as Array<any>).map(SubscriptionModelUsageToJSON)),
+        'payg_estimate': SubscriptionPaygEstimateToJSON(value['paygEstimate']),
     };
 }
 

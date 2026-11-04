@@ -58,6 +58,7 @@ export * from './Subscription';
 export * from './SubscriptionCheckoutRequest';
 export * from './SubscriptionCheckoutSession';
 export * from './SubscriptionModelUsage';
+export * from './SubscriptionPaygEstimate';
 export * from './SubscriptionPlan';
 export * from './SubscriptionPortalRequest';
 export * from './SubscriptionPortalSession';
