@@ -83,3 +83,4 @@ export * from './VideoJob';
 export * from './VideoList';
 export * from './WebhookEndpoint';
 export * from './WebhookEndpointPage';
+export * from './WeightsVerification';

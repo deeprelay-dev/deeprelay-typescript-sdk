@@ -27,6 +27,13 @@ import {
     ModelPricingToJSON,
     ModelPricingToJSONTyped,
 } from './ModelPricing';
+import type { WeightsVerification } from './WeightsVerification';
+import {
+    WeightsVerificationFromJSON,
+    WeightsVerificationFromJSONTyped,
+    WeightsVerificationToJSON,
+    WeightsVerificationToJSONTyped,
+} from './WeightsVerification';
 import type { ModelParametersInner } from './ModelParametersInner';
 import {
     ModelParametersInnerFromJSON,
@@ -193,6 +200,12 @@ export interface Model {
      * @memberof Model
      */
     metrics?: ModelMetrics;
+    /**
+     * 
+     * @type {WeightsVerification}
+     * @memberof Model
+     */
+    weightsVerification?: WeightsVerification;
 }
 
 
@@ -277,6 +290,7 @@ export function ModelFromJSONTyped(json: any, ignoreDiscriminator: boolean): Mod
         'codingAgentRank': json['coding_agent_rank'] == null ? undefined : json['coding_agent_rank'],
         'status': json['status'],
         'metrics': json['metrics'] == null ? undefined : ModelMetricsFromJSON(json['metrics']),
+        'weightsVerification': json['weights_verification'] == null ? undefined : WeightsVerificationFromJSON(json['weights_verification']),
     };
 }
 
@@ -316,6 +330,7 @@ export function ModelToJSONTyped(value?: Model | null, ignoreDiscriminator: bool
         'coding_agent_rank': value['codingAgentRank'],
         'status': value['status'],
         'metrics': ModelMetricsToJSON(value['metrics']),
+        'weights_verification': WeightsVerificationToJSON(value['weightsVerification']),
     };
 }
 

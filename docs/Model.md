@@ -31,6 +31,7 @@ Name | Type
 `codingAgentRank` | number
 `status` | string
 `metrics` | [ModelMetrics](ModelMetrics.md)
+`weightsVerification` | [WeightsVerification](WeightsVerification.md)
 
 ## Example
 
@@ -64,6 +65,7 @@ const example = {
   "codingAgentRank": null,
   "status": null,
   "metrics": null,
+  "weightsVerification": null,
 } satisfies Model
 
 console.log(example)

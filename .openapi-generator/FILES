@@ -92,6 +92,7 @@ docs/VideoList.md
 docs/WebhookEndpoint.md
 docs/WebhookEndpointPage.md
 docs/WebhooksApi.md
+docs/WeightsVerification.md
 package.json
 src/apis/AlertsApi.ts
 src/apis/ApiKeysApi.ts
@@ -186,6 +187,7 @@ src/models/VideoJob.ts
 src/models/VideoList.ts
 src/models/WebhookEndpoint.ts
 src/models/WebhookEndpointPage.ts
+src/models/WeightsVerification.ts
 src/models/index.ts
 src/runtime.ts
 tsconfig.esm.json
