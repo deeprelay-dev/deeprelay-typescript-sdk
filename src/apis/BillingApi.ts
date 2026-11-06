@@ -34,6 +34,11 @@ import {
     ListDeposits200ResponseToJSON,
 } from '../models/ListDeposits200Response';
 import {
+    type PayFromBalanceRequest,
+    PayFromBalanceRequestFromJSON,
+    PayFromBalanceRequestToJSON,
+} from '../models/PayFromBalanceRequest';
+import {
     type Problem,
     ProblemFromJSON,
     ProblemToJSON,
@@ -43,6 +48,11 @@ import {
     ReferralFromJSON,
     ReferralToJSON,
 } from '../models/Referral';
+import {
+    type RenewFromBalanceRequest,
+    RenewFromBalanceRequestFromJSON,
+    RenewFromBalanceRequestToJSON,
+} from '../models/RenewFromBalanceRequest';
 import {
     type SpendingLimit,
     SpendingLimitFromJSON,
@@ -98,6 +108,14 @@ export interface CreateSubscriptionPortalRequest {
 
 export interface GetDepositRequest {
     id: string;
+}
+
+export interface PayPlanFromBalanceRequest {
+    payFromBalanceRequest: PayFromBalanceRequest;
+}
+
+export interface SetRenewFromBalanceRequest {
+    renewFromBalanceRequest: RenewFromBalanceRequest;
 }
 
 export interface UpdateSpendingLimitOperationRequest {
@@ -603,6 +621,120 @@ export class BillingApi extends runtime.BaseAPI {
      */
     async listDeposits(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListDeposits200Response> {
         const response = await this.listDepositsRaw(initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Creates request options for payPlanFromBalance without sending the request
+     */
+    async payPlanFromBalanceRequestOpts(requestParameters: PayPlanFromBalanceRequest): Promise<runtime.RequestOpts> {
+        if (requestParameters['payFromBalanceRequest'] == null) {
+            throw new runtime.RequiredError(
+                'payFromBalanceRequest',
+                'Required parameter "payFromBalanceRequest" was null or undefined when calling payPlanFromBalance().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/billing/subscription/pay-from-balance`;
+
+        return {
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: PayFromBalanceRequestToJSON(requestParameters['payFromBalanceRequest']),
+        };
+    }
+
+    /**
+     * Starts a plan, or upgrades to a bigger one, paid in full from the organization\'s deposited balance instead of a card. Requires the `billing:write` scope AND organization-admin privileges.  Only deposited cash can pay: card and UPI deposits once they are 24 hours old, auto-pay top-ups, and settled crypto deposits. Free credit never can — referral bonuses and commissions, promo deposit matches, credit codes, post rewards and other staff grants, downtime credits and manual adjustments. Inference spends free credit first, so cash is what remains after usage has used up free credit. Payment is all-or-nothing at the plan\'s US-dollar price: there is no balance-plus-card split.  With no active subscription the call starts `plan_key` and the new plan renews from balance by default (see `renew-from-balance`). With one, `plan_key` must be a bigger plan and the call is an upgrade on the same terms as `/billing/subscription/upgrade`: the full new price now and a new billing period from now. 
+     * Pay for a plan from deposited balance
+     */
+    async payPlanFromBalanceRaw(requestParameters: PayPlanFromBalanceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Subscription>> {
+        const requestOptions = await this.payPlanFromBalanceRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => SubscriptionFromJSON(jsonValue));
+    }
+
+    /**
+     * Starts a plan, or upgrades to a bigger one, paid in full from the organization\'s deposited balance instead of a card. Requires the `billing:write` scope AND organization-admin privileges.  Only deposited cash can pay: card and UPI deposits once they are 24 hours old, auto-pay top-ups, and settled crypto deposits. Free credit never can — referral bonuses and commissions, promo deposit matches, credit codes, post rewards and other staff grants, downtime credits and manual adjustments. Inference spends free credit first, so cash is what remains after usage has used up free credit. Payment is all-or-nothing at the plan\'s US-dollar price: there is no balance-plus-card split.  With no active subscription the call starts `plan_key` and the new plan renews from balance by default (see `renew-from-balance`). With one, `plan_key` must be a bigger plan and the call is an upgrade on the same terms as `/billing/subscription/upgrade`: the full new price now and a new billing period from now. 
+     * Pay for a plan from deposited balance
+     */
+    async payPlanFromBalance(requestParameters: PayPlanFromBalanceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Subscription> {
+        const response = await this.payPlanFromBalanceRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Creates request options for setRenewFromBalance without sending the request
+     */
+    async setRenewFromBalanceRequestOpts(requestParameters: SetRenewFromBalanceRequest): Promise<runtime.RequestOpts> {
+        if (requestParameters['renewFromBalanceRequest'] == null) {
+            throw new runtime.RequiredError(
+                'renewFromBalanceRequest',
+                'Required parameter "renewFromBalanceRequest" was null or undefined when calling setRenewFromBalance().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        let urlPath = `/billing/subscription/renew-from-balance`;
+
+        return {
+            path: urlPath,
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: RenewFromBalanceRequestToJSON(requestParameters['renewFromBalanceRequest']),
+        };
+    }
+
+    /**
+     * When on, each renewal is paid from deposited cash (see `pay-from-balance` for what counts) if it covers the full price; otherwise the card on file is charged and the organization\'s admins are emailed, or, with no card, the renewal fails and the email asks them to add funds. On by default for a plan started from balance, off for a plan started by card or UPI. US-dollar plans only. Requires the `billing:write` scope AND organization-admin privileges. 
+     * Choose whether the plan renews from balance
+     */
+    async setRenewFromBalanceRaw(requestParameters: SetRenewFromBalanceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Subscription>> {
+        const requestOptions = await this.setRenewFromBalanceRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => SubscriptionFromJSON(jsonValue));
+    }
+
+    /**
+     * When on, each renewal is paid from deposited cash (see `pay-from-balance` for what counts) if it covers the full price; otherwise the card on file is charged and the organization\'s admins are emailed, or, with no card, the renewal fails and the email asks them to add funds. On by default for a plan started from balance, off for a plan started by card or UPI. US-dollar plans only. Requires the `billing:write` scope AND organization-admin privileges. 
+     * Choose whether the plan renews from balance
+     */
+    async setRenewFromBalance(requestParameters: SetRenewFromBalanceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Subscription> {
+        const response = await this.setRenewFromBalanceRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

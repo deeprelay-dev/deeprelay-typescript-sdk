@@ -14,6 +14,8 @@ All URIs are relative to *https://api.deeprelay.ai/v1*
 | [**getSpendingLimit**](BillingApi.md#getspendinglimit) | **GET** /billing/spending-limit | Get the org spending limit |
 | [**getSubscription**](BillingApi.md#getsubscription) | **GET** /billing/subscription | Get the org subscription status and quota usage |
 | [**listDeposits**](BillingApi.md#listdeposits) | **GET** /billing/deposits | List stablecoin deposits |
+| [**payPlanFromBalance**](BillingApi.md#payplanfrombalance) | **POST** /billing/subscription/pay-from-balance | Pay for a plan from deposited balance |
+| [**setRenewFromBalance**](BillingApi.md#setrenewfrombalance) | **PUT** /billing/subscription/renew-from-balance | Choose whether the plan renews from balance |
 | [**updateSpendingLimit**](BillingApi.md#updatespendinglimitoperation) | **PUT** /billing/spending-limit | Set the org spending limit |
 | [**upgradeSubscription**](BillingApi.md#upgradesubscription) | **POST** /billing/subscription/upgrade | Upgrade the subscription to a bigger plan |
 
@@ -710,6 +712,163 @@ This endpoint does not need any parameter.
 |-------------|-------------|------------------|
 | **200** | OK |  -  |
 | **404** | Error response (RFC 7807) |  -  |
+| **429** | Rate limit exceeded (RFC 7807). Retry-After header indicates seconds to wait. |  * Retry-After - Seconds the client should wait before retrying. <br>  |
+| **0** | Error response (RFC 7807) |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## payPlanFromBalance
+
+> Subscription payPlanFromBalance(payFromBalanceRequest)
+
+Pay for a plan from deposited balance
+
+Starts a plan, or upgrades to a bigger one, paid in full from the organization\&#39;s deposited balance instead of a card. Requires the &#x60;billing:write&#x60; scope AND organization-admin privileges.  Only deposited cash can pay: card and UPI deposits once they are 24 hours old, auto-pay top-ups, and settled crypto deposits. Free credit never can — referral bonuses and commissions, promo deposit matches, credit codes, post rewards and other staff grants, downtime credits and manual adjustments. Inference spends free credit first, so cash is what remains after usage has used up free credit. Payment is all-or-nothing at the plan\&#39;s US-dollar price: there is no balance-plus-card split.  With no active subscription the call starts &#x60;plan_key&#x60; and the new plan renews from balance by default (see &#x60;renew-from-balance&#x60;). With one, &#x60;plan_key&#x60; must be a bigger plan and the call is an upgrade on the same terms as &#x60;/billing/subscription/upgrade&#x60;: the full new price now and a new billing period from now. 
+
+### Example
+
+```ts
+import {
+  Configuration,
+  BillingApi,
+} from '@deeprelay/sdk';
+import type { PayPlanFromBalanceRequest } from '@deeprelay/sdk';
+
+async function example() {
+  console.log("🚀 Testing @deeprelay/sdk SDK...");
+  const config = new Configuration({ 
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new BillingApi(config);
+
+  const body = {
+    // PayFromBalanceRequest
+    payFromBalanceRequest: ...,
+  } satisfies PayPlanFromBalanceRequest;
+
+  try {
+    const data = await api.payPlanFromBalance(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **payFromBalanceRequest** | [PayFromBalanceRequest](PayFromBalanceRequest.md) |  | |
+
+### Return type
+
+[**Subscription**](Subscription.md)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`, `application/problem+json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | OK — the subscription after the payment |  -  |
+| **400** | Unknown plan_key, or a plan this deployment does not offer |  -  |
+| **402** | &#x60;insufficient_balance&#x60; — deposited cash does not cover the plan price; the detail says how much of the balance is free credit or a deposit still inside its 24-hour wait. Nothing was charged. |  -  |
+| **403** | Not an organization admin, or the account is paused (&#x60;account_frozen&#x60;) |  -  |
+| **409** | &#x60;not_an_upgrade&#x60; — the target is the current plan or a smaller one; &#x60;not_usd_plan&#x60; — the plan is billed in rupees through UPI; &#x60;subscription_cancelling&#x60; — resume the subscription first; &#x60;renew_with_card&#x60; — the plan was billed through a previous payment account; &#x60;switch_in_progress&#x60;; &#x60;price_changed&#x60;; &#x60;renewal_due&#x60; — the plan\&#39;s last renewal is unpaid (pay it for the same plan first); &#x60;payment_in_progress&#x60; — another plan payment is settling, or a plan is already active |  -  |
+| **422** | plan_key is missing |  -  |
+| **502** | &#x60;payment_failed&#x60; — the payment could not be completed and the balance was not charged; &#x60;paid_by_card&#x60; — an upgrade could not be paid from balance, the balance was not charged and the upgrade went to the saved payment method; &#x60;payment_pending&#x60; — the balance was taken and the payment is still being confirmed with the payment provider (check the plan shortly, then contact support) |  -  |
+| **503** | Subscription billing is not configured on this deployment |  -  |
+| **429** | Rate limit exceeded (RFC 7807). Retry-After header indicates seconds to wait. |  * Retry-After - Seconds the client should wait before retrying. <br>  |
+| **0** | Error response (RFC 7807) |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## setRenewFromBalance
+
+> Subscription setRenewFromBalance(renewFromBalanceRequest)
+
+Choose whether the plan renews from balance
+
+When on, each renewal is paid from deposited cash (see &#x60;pay-from-balance&#x60; for what counts) if it covers the full price; otherwise the card on file is charged and the organization\&#39;s admins are emailed, or, with no card, the renewal fails and the email asks them to add funds. On by default for a plan started from balance, off for a plan started by card or UPI. US-dollar plans only. Requires the &#x60;billing:write&#x60; scope AND organization-admin privileges. 
+
+### Example
+
+```ts
+import {
+  Configuration,
+  BillingApi,
+} from '@deeprelay/sdk';
+import type { SetRenewFromBalanceRequest } from '@deeprelay/sdk';
+
+async function example() {
+  console.log("🚀 Testing @deeprelay/sdk SDK...");
+  const config = new Configuration({ 
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new BillingApi(config);
+
+  const body = {
+    // RenewFromBalanceRequest
+    renewFromBalanceRequest: ...,
+  } satisfies SetRenewFromBalanceRequest;
+
+  try {
+    const data = await api.setRenewFromBalance(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **renewFromBalanceRequest** | [RenewFromBalanceRequest](RenewFromBalanceRequest.md) |  | |
+
+### Return type
+
+[**Subscription**](Subscription.md)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`, `application/problem+json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | OK — the subscription with the new setting |  -  |
+| **403** | Not an organization admin |  -  |
+| **409** | &#x60;not_subscribed&#x60; — no active subscription; &#x60;not_usd_plan&#x60; — the plan is billed in rupees; &#x60;renew_with_card&#x60; — the plan was billed through a previous payment account |  -  |
+| **422** | enabled is missing |  -  |
+| **503** | Subscription billing is not configured on this deployment |  -  |
 | **429** | Rate limit exceeded (RFC 7807). Retry-After header indicates seconds to wait. |  * Retry-After - Seconds the client should wait before retrying. <br>  |
 | **0** | Error response (RFC 7807) |  -  |
 

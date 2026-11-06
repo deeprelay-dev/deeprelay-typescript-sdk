@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
+import type { SubscriptionBalancePayment } from './SubscriptionBalancePayment';
+import {
+    SubscriptionBalancePaymentFromJSON,
+    SubscriptionBalancePaymentFromJSONTyped,
+    SubscriptionBalancePaymentToJSON,
+    SubscriptionBalancePaymentToJSONTyped,
+} from './SubscriptionBalancePayment';
 import type { SubscriptionPlan } from './SubscriptionPlan';
 import {
     SubscriptionPlanFromJSON,
@@ -103,6 +110,18 @@ export interface Subscription {
      * @memberof Subscription
      */
     plans: Array<SubscriptionTier>;
+    /**
+     * Whether each renewal is paid from deposited balance when it covers the full price (see `/billing/subscription/renew-from-balance`).
+     * @type {boolean}
+     * @memberof Subscription
+     */
+    renewFromBalance: boolean;
+    /**
+     * 
+     * @type {SubscriptionBalancePayment}
+     * @memberof Subscription
+     */
+    balancePayment?: SubscriptionBalancePayment;
 }
 
 /**
@@ -115,6 +134,7 @@ export function instanceOfSubscription(value: object): value is Subscription {
     if (!('plan' in value) || value['plan'] === undefined) return false;
     if (!('quota' in value) || value['quota'] === undefined) return false;
     if (!('plans' in value) || value['plans'] === undefined) return false;
+    if ((!('renewFromBalance' in (value as Record<string, any>)) && !('renew_from_balance' in (value as Record<string, any>))) || ((value as Record<string, any>)['renewFromBalance'] === undefined && (value as Record<string, any>)['renew_from_balance'] === undefined)) return false;
     return true;
 }
 
@@ -137,6 +157,8 @@ export function SubscriptionFromJSONTyped(json: any, ignoreDiscriminator: boolea
         'quota': SubscriptionQuotaFromJSON(json['quota']),
         'usage': json['usage'] == null ? undefined : SubscriptionUsageFromJSON(json['usage']),
         'plans': ((json['plans'] as Array<any>).map(SubscriptionTierFromJSON)),
+        'renewFromBalance': json['renew_from_balance'],
+        'balancePayment': json['balance_payment'] == null ? undefined : SubscriptionBalancePaymentFromJSON(json['balance_payment']),
     };
 }
 
@@ -160,6 +182,8 @@ export function SubscriptionToJSONTyped(value?: Subscription | null, ignoreDiscr
         'quota': SubscriptionQuotaToJSON(value['quota']),
         'usage': SubscriptionUsageToJSON(value['usage']),
         'plans': ((value['plans'] as Array<any>).map(SubscriptionTierToJSON)),
+        'renew_from_balance': value['renewFromBalance'],
+        'balance_payment': SubscriptionBalancePaymentToJSON(value['balancePayment']),
     };
 }
 

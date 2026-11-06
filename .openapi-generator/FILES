@@ -48,10 +48,12 @@ docs/ModelPricing.md
 docs/ModelRate.md
 docs/OpenAIErrorEnvelope.md
 docs/OpenAIErrorEnvelopeError.md
+docs/PayFromBalanceRequest.md
 docs/PeakWindow.md
 docs/Problem.md
 docs/RefereeStatus.md
 docs/Referral.md
+docs/RenewFromBalanceRequest.md
 docs/RequestAttempt.md
 docs/RequestLogEntry.md
 docs/RequestLogPage.md
@@ -62,6 +64,7 @@ docs/ResponseFormatText.md
 docs/SpendingLimit.md
 docs/StreamOptions.md
 docs/Subscription.md
+docs/SubscriptionBalancePayment.md
 docs/SubscriptionCheckoutRequest.md
 docs/SubscriptionCheckoutSession.md
 docs/SubscriptionModelUsage.md
@@ -147,10 +150,12 @@ src/models/ModelPricing.ts
 src/models/ModelRate.ts
 src/models/OpenAIErrorEnvelope.ts
 src/models/OpenAIErrorEnvelopeError.ts
+src/models/PayFromBalanceRequest.ts
 src/models/PeakWindow.ts
 src/models/Problem.ts
 src/models/RefereeStatus.ts
 src/models/Referral.ts
+src/models/RenewFromBalanceRequest.ts
 src/models/RequestAttempt.ts
 src/models/RequestLogEntry.ts
 src/models/RequestLogPage.ts
@@ -160,6 +165,7 @@ src/models/ResponseFormatText.ts
 src/models/SpendingLimit.ts
 src/models/StreamOptions.ts
 src/models/Subscription.ts
+src/models/SubscriptionBalancePayment.ts
 src/models/SubscriptionCheckoutRequest.ts
 src/models/SubscriptionCheckoutSession.ts
 src/models/SubscriptionModelUsage.ts

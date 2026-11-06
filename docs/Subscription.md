@@ -16,6 +16,8 @@ Name | Type
 `quota` | [SubscriptionQuota](SubscriptionQuota.md)
 `usage` | [SubscriptionUsage](SubscriptionUsage.md)
 `plans` | [Array&lt;SubscriptionTier&gt;](SubscriptionTier.md)
+`renewFromBalance` | boolean
+`balancePayment` | [SubscriptionBalancePayment](SubscriptionBalancePayment.md)
 
 ## Example
 
@@ -33,6 +35,8 @@ const example = {
   "quota": null,
   "usage": null,
   "plans": null,
+  "renewFromBalance": null,
+  "balancePayment": null,
 } satisfies Subscription
 
 console.log(example)
