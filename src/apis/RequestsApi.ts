@@ -39,6 +39,8 @@ export interface ExportRequestsRequest {
     from?: Date;
     to?: Date;
     fallback?: boolean;
+    source?: ExportRequestsSourceEnum;
+    batchId?: string;
 }
 
 export interface GetRequestRequest {
@@ -55,6 +57,8 @@ export interface ListRequestsRequest {
     from?: Date;
     to?: Date;
     fallback?: boolean;
+    source?: ListRequestsSourceEnum;
+    batchId?: string;
     cursor?: string;
     limit?: number;
 }
@@ -106,6 +110,14 @@ export class RequestsApi extends runtime.BaseAPI {
             queryParameters['fallback'] = requestParameters['fallback'];
         }
 
+        if (requestParameters['source'] != null) {
+            queryParameters['source'] = requestParameters['source'];
+        }
+
+        if (requestParameters['batchId'] != null) {
+            queryParameters['batch_id'] = requestParameters['batchId'];
+        }
+
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.accessToken) {
@@ -128,7 +140,7 @@ export class RequestsApi extends runtime.BaseAPI {
     }
 
     /**
-     * Streams every request-log row matching the filters as a CSV attachment, oldest columns first: `request_id, client_request_id, occurred_at, surface, model, key_id, key_name, key_prefix, status, http_status, error_code, finish_reason, prompt_tokens, completion_tokens, cached_tokens, reasoning_tokens, quota_units, cost, plan_covered, ttft_ms, duration_ms, ignored_params, requested_model, served_model, fallback_reason`. Takes the same filters and visibility rules as `GET /requests`, without the cursor and limit.  The export is counted before anything is written. When the filters match more rows than the export cap, the answer is 422 `export_too_large` and the problem body carries `max_rows`; narrow the time range or add a filter, then export again.  Requires the `serverless:read` scope. Exports have their own, tighter per-key rate limit. 
+     * Streams every request-log row matching the filters as a CSV attachment, oldest columns first: `request_id, client_request_id, occurred_at, surface, model, key_id, key_name, key_prefix, status, http_status, error_code, finish_reason, prompt_tokens, completion_tokens, cached_tokens, reasoning_tokens, quota_units, cost, plan_covered, ttft_ms, duration_ms, ignored_params, requested_model, served_model, fallback_reason, search_count, search_overflow_count, search_result_tokens, search_overflow_fee, source, batch_id, custom_id, rate_tier, final`. Takes the same filters and visibility rules as `GET /requests`, without the cursor and limit.  The export is counted before anything is written. When the filters match more rows than the export cap, the answer is 422 `export_too_large` and the problem body carries `max_rows`; narrow the time range or add a filter, then export again.  Requires the `serverless:read` scope. Exports have their own, tighter per-key rate limit. 
      * Export the request log as CSV
      */
     async exportRequestsRaw(requestParameters: ExportRequestsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
@@ -143,7 +155,7 @@ export class RequestsApi extends runtime.BaseAPI {
     }
 
     /**
-     * Streams every request-log row matching the filters as a CSV attachment, oldest columns first: `request_id, client_request_id, occurred_at, surface, model, key_id, key_name, key_prefix, status, http_status, error_code, finish_reason, prompt_tokens, completion_tokens, cached_tokens, reasoning_tokens, quota_units, cost, plan_covered, ttft_ms, duration_ms, ignored_params, requested_model, served_model, fallback_reason`. Takes the same filters and visibility rules as `GET /requests`, without the cursor and limit.  The export is counted before anything is written. When the filters match more rows than the export cap, the answer is 422 `export_too_large` and the problem body carries `max_rows`; narrow the time range or add a filter, then export again.  Requires the `serverless:read` scope. Exports have their own, tighter per-key rate limit. 
+     * Streams every request-log row matching the filters as a CSV attachment, oldest columns first: `request_id, client_request_id, occurred_at, surface, model, key_id, key_name, key_prefix, status, http_status, error_code, finish_reason, prompt_tokens, completion_tokens, cached_tokens, reasoning_tokens, quota_units, cost, plan_covered, ttft_ms, duration_ms, ignored_params, requested_model, served_model, fallback_reason, search_count, search_overflow_count, search_result_tokens, search_overflow_fee, source, batch_id, custom_id, rate_tier, final`. Takes the same filters and visibility rules as `GET /requests`, without the cursor and limit.  The export is counted before anything is written. When the filters match more rows than the export cap, the answer is 422 `export_too_large` and the problem body carries `max_rows`; narrow the time range or add a filter, then export again.  Requires the `serverless:read` scope. Exports have their own, tighter per-key rate limit. 
      * Export the request log as CSV
      */
     async exportRequests(requestParameters: ExportRequestsRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
@@ -248,6 +260,14 @@ export class RequestsApi extends runtime.BaseAPI {
             queryParameters['fallback'] = requestParameters['fallback'];
         }
 
+        if (requestParameters['source'] != null) {
+            queryParameters['source'] = requestParameters['source'];
+        }
+
+        if (requestParameters['batchId'] != null) {
+            queryParameters['batch_id'] = requestParameters['batchId'];
+        }
+
         if (requestParameters['cursor'] != null) {
             queryParameters['cursor'] = requestParameters['cursor'];
         }
@@ -324,6 +344,14 @@ export type ExportRequestsStatusEnum = typeof ExportRequestsStatusEnum[keyof typ
 /**
  * @export
  */
+export const ExportRequestsSourceEnum = {
+    Api: 'api',
+    Batch: 'batch'
+} as const;
+export type ExportRequestsSourceEnum = typeof ExportRequestsSourceEnum[keyof typeof ExportRequestsSourceEnum];
+/**
+ * @export
+ */
 export const ListRequestsSurfaceEnum = {
     Chat: 'chat',
     Messages: 'messages',
@@ -343,3 +371,11 @@ export const ListRequestsStatusEnum = {
     Rejected: 'rejected'
 } as const;
 export type ListRequestsStatusEnum = typeof ListRequestsStatusEnum[keyof typeof ListRequestsStatusEnum];
+/**
+ * @export
+ */
+export const ListRequestsSourceEnum = {
+    Api: 'api',
+    Batch: 'batch'
+} as const;
+export type ListRequestsSourceEnum = typeof ListRequestsSourceEnum[keyof typeof ListRequestsSourceEnum];

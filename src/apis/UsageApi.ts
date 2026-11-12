@@ -33,6 +33,8 @@ export interface ListUsageRequest {
     limit?: number;
     modality?: ListUsageModalityEnum;
     model?: string;
+    source?: ListUsageSourceEnum;
+    batchId?: string;
 }
 
 /**
@@ -76,6 +78,14 @@ export class UsageApi extends runtime.BaseAPI {
 
         if (requestParameters['model'] != null) {
             queryParameters['model'] = requestParameters['model'];
+        }
+
+        if (requestParameters['source'] != null) {
+            queryParameters['source'] = requestParameters['source'];
+        }
+
+        if (requestParameters['batchId'] != null) {
+            queryParameters['batch_id'] = requestParameters['batchId'];
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -149,3 +159,11 @@ export const ListUsageModalityEnum = {
     Embedding: 'embedding'
 } as const;
 export type ListUsageModalityEnum = typeof ListUsageModalityEnum[keyof typeof ListUsageModalityEnum];
+/**
+ * @export
+ */
+export const ListUsageSourceEnum = {
+    Api: 'api',
+    Batch: 'batch'
+} as const;
+export type ListUsageSourceEnum = typeof ListUsageSourceEnum[keyof typeof ListUsageSourceEnum];

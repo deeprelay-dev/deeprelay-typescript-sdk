@@ -31,6 +31,12 @@ export interface PeakWindow {
      * @memberof PeakWindow
      */
     end: string;
+    /**
+     * ISO weekdays (1 = Monday ... 7 = Sunday) of the UTC date on which the window starts. Absent means every day. A window that wraps past midnight belongs to the day it started on.
+     * @type {Array<number>}
+     * @memberof PeakWindow
+     */
+    days?: Array<number>;
 }
 
 /**
@@ -54,6 +60,7 @@ export function PeakWindowFromJSONTyped(json: any, ignoreDiscriminator: boolean)
         
         'start': json['start'],
         'end': json['end'],
+        'days': json['days'] == null ? undefined : json['days'],
     };
 }
 
@@ -70,6 +77,7 @@ export function PeakWindowToJSONTyped(value?: PeakWindow | null, ignoreDiscrimin
         
         'start': value['start'],
         'end': value['end'],
+        'days': value['days'],
     };
 }
 

@@ -12,11 +12,11 @@ All URIs are relative to *https://api.deeprelay.ai/v1*
 
 ## exportRequests
 
-> string exportRequests(key, model, surface, status, errorCode, clientRequestId, from, to, fallback)
+> string exportRequests(key, model, surface, status, errorCode, clientRequestId, from, to, fallback, source, batchId)
 
 Export the request log as CSV
 
-Streams every request-log row matching the filters as a CSV attachment, oldest columns first: &#x60;request_id, client_request_id, occurred_at, surface, model, key_id, key_name, key_prefix, status, http_status, error_code, finish_reason, prompt_tokens, completion_tokens, cached_tokens, reasoning_tokens, quota_units, cost, plan_covered, ttft_ms, duration_ms, ignored_params, requested_model, served_model, fallback_reason&#x60;. Takes the same filters and visibility rules as &#x60;GET /requests&#x60;, without the cursor and limit.  The export is counted before anything is written. When the filters match more rows than the export cap, the answer is 422 &#x60;export_too_large&#x60; and the problem body carries &#x60;max_rows&#x60;; narrow the time range or add a filter, then export again.  Requires the &#x60;serverless:read&#x60; scope. Exports have their own, tighter per-key rate limit. 
+Streams every request-log row matching the filters as a CSV attachment, oldest columns first: &#x60;request_id, client_request_id, occurred_at, surface, model, key_id, key_name, key_prefix, status, http_status, error_code, finish_reason, prompt_tokens, completion_tokens, cached_tokens, reasoning_tokens, quota_units, cost, plan_covered, ttft_ms, duration_ms, ignored_params, requested_model, served_model, fallback_reason, search_count, search_overflow_count, search_result_tokens, search_overflow_fee, source, batch_id, custom_id, rate_tier, final&#x60;. Takes the same filters and visibility rules as &#x60;GET /requests&#x60;, without the cursor and limit.  The export is counted before anything is written. When the filters match more rows than the export cap, the answer is 422 &#x60;export_too_large&#x60; and the problem body carries &#x60;max_rows&#x60;; narrow the time range or add a filter, then export again.  Requires the &#x60;serverless:read&#x60; scope. Exports have their own, tighter per-key rate limit. 
 
 ### Example
 
@@ -54,6 +54,10 @@ async function example() {
     to: 2013-10-20T19:20:30+01:00,
     // boolean | `true` returns only rows a backup model served or where backups were tried (`fallback_reason` is set); `false` or absent applies no filter. Any other value is a 400. (optional)
     fallback: true,
+    // 'api' | 'batch' | Only rows from this source: `api` (synchronous calls) or `batch` (lines run by the Batch API). Any other value is a 400 here (a 422 `validation_failed` on `/usage`). (optional)
+    source: source_example,
+    // string | Only rows for the lines of this batch. Must be a batch id (`batch_` followed by 24 hex characters); anything else is a 400 here (a 422 `validation_failed` on `/usage`). (optional)
+    batchId: batchId_example,
   } satisfies ExportRequestsRequest;
 
   try {
@@ -82,6 +86,8 @@ example().catch(console.error);
 | **from** | `Date` | Inclusive RFC 3339 range start. Defaults to the start of the 90-day window; an older value is clamped to it. | [Optional] [Defaults to `undefined`] |
 | **to** | `Date` | Exclusive RFC 3339 range end. Defaults to now; must be after &#x60;from&#x60;. | [Optional] [Defaults to `undefined`] |
 | **fallback** | `boolean` | &#x60;true&#x60; returns only rows a backup model served or where backups were tried (&#x60;fallback_reason&#x60; is set); &#x60;false&#x60; or absent applies no filter. Any other value is a 400. | [Optional] [Defaults to `undefined`] |
+| **source** | `api`, `batch` | Only rows from this source: &#x60;api&#x60; (synchronous calls) or &#x60;batch&#x60; (lines run by the Batch API). Any other value is a 400 here (a 422 &#x60;validation_failed&#x60; on &#x60;/usage&#x60;). | [Optional] [Defaults to `undefined`] [Enum: api, batch] |
+| **batchId** | `string` | Only rows for the lines of this batch. Must be a batch id (&#x60;batch_&#x60; followed by 24 hex characters); anything else is a 400 here (a 422 &#x60;validation_failed&#x60; on &#x60;/usage&#x60;). | [Optional] [Defaults to `undefined`] |
 
 ### Return type
 
@@ -185,7 +191,7 @@ example().catch(console.error);
 
 ## listRequests
 
-> RequestLogPage listRequests(key, model, surface, status, errorCode, clientRequestId, from, to, fallback, cursor, limit)
+> RequestLogPage listRequests(key, model, surface, status, errorCode, clientRequestId, from, to, fallback, source, batchId, cursor, limit)
 
 List requests (the request log)
 
@@ -227,6 +233,10 @@ async function example() {
     to: 2013-10-20T19:20:30+01:00,
     // boolean | `true` returns only rows a backup model served or where backups were tried (`fallback_reason` is set); `false` or absent applies no filter. Any other value is a 400. (optional)
     fallback: true,
+    // 'api' | 'batch' | Only rows from this source: `api` (synchronous calls) or `batch` (lines run by the Batch API). Any other value is a 400 here (a 422 `validation_failed` on `/usage`). (optional)
+    source: source_example,
+    // string | Only rows for the lines of this batch. Must be a batch id (`batch_` followed by 24 hex characters); anything else is a 400 here (a 422 `validation_failed` on `/usage`). (optional)
+    batchId: batchId_example,
     // string (optional)
     cursor: cursor_example,
     // number | Page size. Defaults to 50; values above 100 are clamped to 100. (optional)
@@ -259,6 +269,8 @@ example().catch(console.error);
 | **from** | `Date` | Inclusive RFC 3339 range start. Defaults to the start of the 90-day window; an older value is clamped to it. | [Optional] [Defaults to `undefined`] |
 | **to** | `Date` | Exclusive RFC 3339 range end. Defaults to now; must be after &#x60;from&#x60;. | [Optional] [Defaults to `undefined`] |
 | **fallback** | `boolean` | &#x60;true&#x60; returns only rows a backup model served or where backups were tried (&#x60;fallback_reason&#x60; is set); &#x60;false&#x60; or absent applies no filter. Any other value is a 400. | [Optional] [Defaults to `undefined`] |
+| **source** | `api`, `batch` | Only rows from this source: &#x60;api&#x60; (synchronous calls) or &#x60;batch&#x60; (lines run by the Batch API). Any other value is a 400 here (a 422 &#x60;validation_failed&#x60; on &#x60;/usage&#x60;). | [Optional] [Defaults to `undefined`] [Enum: api, batch] |
+| **batchId** | `string` | Only rows for the lines of this batch. Must be a batch id (&#x60;batch_&#x60; followed by 24 hex characters); anything else is a 400 here (a 422 &#x60;validation_failed&#x60; on &#x60;/usage&#x60;). | [Optional] [Defaults to `undefined`] |
 | **cursor** | `string` |  | [Optional] [Defaults to `undefined`] |
 | **limit** | `number` | Page size. Defaults to 50; values above 100 are clamped to 100. | [Optional] [Defaults to `50`] |
 

@@ -9,6 +9,7 @@ Name | Type
 ------------ | -------------
 `start` | string
 `end` | string
+`days` | Array&lt;number&gt;
 
 ## Example
 
@@ -19,6 +20,7 @@ import type { PeakWindow } from '@deeprelay/sdk'
 const example = {
   "start": null,
   "end": null,
+  "days": null,
 } satisfies PeakWindow
 
 console.log(example)

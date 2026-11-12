@@ -10,7 +10,7 @@ All URIs are relative to *https://api.deeprelay.ai/v1*
 
 ## listUsage
 
-> UsagePage listUsage(bucket, groupBy, start, end, cursor, limit, modality, model)
+> UsagePage listUsage(bucket, groupBy, start, end, cursor, limit, modality, model, source, batchId)
 
 Time-bucketed usage
 
@@ -50,6 +50,10 @@ async function example() {
     modality: modality_example,
     // string | Return inference-usage rows for this model only: an exact match on the model `id` as listed by `GET /models`. May be combined with `modality`. Setting `modality` or `model` selects the inference-usage shape.  (optional)
     model: model_example,
+    // 'api' | 'batch' | Return inference-usage rows from this source only: `api` (synchronous calls) or `batch` (Batch API lines). Setting it selects the inference-usage shape. Any other value is a 422 `validation_failed` (the request log answers the same mistake with a 400).  (optional)
+    source: source_example,
+    // string | Return inference-usage rows for the lines of this batch only. Setting it selects the inference-usage shape. A value that is not a batch id is a 422 `validation_failed` (a 400 on the request log).  (optional)
+    batchId: batchId_example,
   } satisfies ListUsageRequest;
 
   try {
@@ -77,6 +81,8 @@ example().catch(console.error);
 | **limit** | `number` |  | [Optional] [Defaults to `50`] |
 | **modality** | `chat`, `image`, `video`, `embedding` | Return inference-usage rows for this modality only. Setting &#x60;modality&#x60; or &#x60;model&#x60; selects the inference-usage shape; omit both for the instance-usage shape.  | [Optional] [Defaults to `undefined`] [Enum: chat, image, video, embedding] |
 | **model** | `string` | Return inference-usage rows for this model only: an exact match on the model &#x60;id&#x60; as listed by &#x60;GET /models&#x60;. May be combined with &#x60;modality&#x60;. Setting &#x60;modality&#x60; or &#x60;model&#x60; selects the inference-usage shape.  | [Optional] [Defaults to `undefined`] |
+| **source** | `api`, `batch` | Return inference-usage rows from this source only: &#x60;api&#x60; (synchronous calls) or &#x60;batch&#x60; (Batch API lines). Setting it selects the inference-usage shape. Any other value is a 422 &#x60;validation_failed&#x60; (the request log answers the same mistake with a 400).  | [Optional] [Defaults to `undefined`] [Enum: api, batch] |
+| **batchId** | `string` | Return inference-usage rows for the lines of this batch only. Setting it selects the inference-usage shape. A value that is not a batch id is a 422 &#x60;validation_failed&#x60; (a 400 on the request log).  | [Optional] [Defaults to `undefined`] |
 
 ### Return type
 

@@ -237,6 +237,36 @@ export interface RequestLogEntry {
      * @memberof RequestLogEntry
      */
     attempts?: Array<RequestAttempt>;
+    /**
+     * `api` for a synchronous call, `batch` for a line run by the Batch API. Present on every row.
+     * @type {RequestLogEntrySourceEnum}
+     * @memberof RequestLogEntry
+     */
+    source?: RequestLogEntrySourceEnum;
+    /**
+     * The batch this line belongs to. Batch rows only.
+     * @type {string}
+     * @memberof RequestLogEntry
+     */
+    batchId?: string;
+    /**
+     * The line's `custom_id` from your input file. Batch rows only.
+     * @type {string}
+     * @memberof RequestLogEntry
+     */
+    customId?: string;
+    /**
+     * The rate the line was billed at: `off_peak` (the model's off-peak rate), `batch` (the model's batch price) or `normal` (the model's standard rate; a model with no peak schedule). Batch rows only.
+     * @type {RequestLogEntryRateTierEnum}
+     * @memberof RequestLogEntry
+     */
+    rateTier?: RequestLogEntryRateTierEnum;
+    /**
+     * Batch rows only. `false` on an attempt that was retried; the line's outcome is the row with `final: true`.
+     * @type {boolean}
+     * @memberof RequestLogEntry
+     */
+    _final?: boolean;
 }
 
 
@@ -263,6 +293,25 @@ export const RequestLogEntryStatusEnum = {
     Rejected: 'rejected'
 } as const;
 export type RequestLogEntryStatusEnum = typeof RequestLogEntryStatusEnum[keyof typeof RequestLogEntryStatusEnum];
+
+/**
+ * @export
+ */
+export const RequestLogEntrySourceEnum = {
+    Api: 'api',
+    Batch: 'batch'
+} as const;
+export type RequestLogEntrySourceEnum = typeof RequestLogEntrySourceEnum[keyof typeof RequestLogEntrySourceEnum];
+
+/**
+ * @export
+ */
+export const RequestLogEntryRateTierEnum = {
+    Normal: 'normal',
+    OffPeak: 'off_peak',
+    Batch: 'batch'
+} as const;
+export type RequestLogEntryRateTierEnum = typeof RequestLogEntryRateTierEnum[keyof typeof RequestLogEntryRateTierEnum];
 
 
 /**
@@ -325,6 +374,11 @@ export function RequestLogEntryFromJSONTyped(json: any, ignoreDiscriminator: boo
         'servedModel': json['served_model'] == null ? undefined : json['served_model'],
         'fallbackReason': json['fallback_reason'] == null ? undefined : json['fallback_reason'],
         'attempts': json['attempts'] == null ? undefined : ((json['attempts'] as Array<any>).map(RequestAttemptFromJSON)),
+        'source': json['source'] == null ? undefined : json['source'],
+        'batchId': json['batch_id'] == null ? undefined : json['batch_id'],
+        'customId': json['custom_id'] == null ? undefined : json['custom_id'],
+        'rateTier': json['rate_tier'] == null ? undefined : json['rate_tier'],
+        '_final': json['final'] == null ? undefined : json['final'],
     };
 }
 
@@ -374,6 +428,11 @@ export function RequestLogEntryToJSONTyped(value?: RequestLogEntry | null, ignor
         'served_model': value['servedModel'],
         'fallback_reason': value['fallbackReason'],
         'attempts': value['attempts'] == null ? undefined : ((value['attempts'] as Array<any>).map(RequestAttemptToJSON)),
+        'source': value['source'],
+        'batch_id': value['batchId'],
+        'custom_id': value['customId'],
+        'rate_tier': value['rateTier'],
+        'final': value['_final'],
     };
 }
 

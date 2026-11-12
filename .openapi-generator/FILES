@@ -41,6 +41,7 @@ docs/JSONSchemaFormat.md
 docs/ListDeposits200Response.md
 docs/MetaApi.md
 docs/Model.md
+docs/ModelBatchPricing.md
 docs/ModelList.md
 docs/ModelMetrics.md
 docs/ModelParametersInner.md
@@ -143,6 +144,7 @@ src/models/InferencePreflight.ts
 src/models/JSONSchemaFormat.ts
 src/models/ListDeposits200Response.ts
 src/models/Model.ts
+src/models/ModelBatchPricing.ts
 src/models/ModelList.ts
 src/models/ModelMetrics.ts
 src/models/ModelParametersInner.ts

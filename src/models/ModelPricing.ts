@@ -20,6 +20,13 @@ import {
     ModelRateToJSON,
     ModelRateToJSONTyped,
 } from './ModelRate';
+import type { ModelBatchPricing } from './ModelBatchPricing';
+import {
+    ModelBatchPricingFromJSON,
+    ModelBatchPricingFromJSONTyped,
+    ModelBatchPricingToJSON,
+    ModelBatchPricingToJSONTyped,
+} from './ModelBatchPricing';
 import type { PeakWindow } from './PeakWindow';
 import {
     PeakWindowFromJSON,
@@ -113,7 +120,7 @@ export interface ModelPricing {
      */
     period?: ModelPricingPeriodEnum;
     /**
-     * The daily UTC ranges during which the `peak` rates apply, start inclusive and end exclusive ("24:00" is a valid end; a range whose end sorts before its start wraps midnight). Present only on a model priced by time of day.
+     * The UTC ranges during which the `peak` rates apply, start inclusive and end exclusive ("24:00" is a valid end; a range whose end sorts before its start wraps midnight). A range with `days` applies only on those ISO weekdays; without `days` it applies every day. Present only on a model priced by time of day.
      * @type {Array<PeakWindow>}
      * @memberof ModelPricing
      */
@@ -130,6 +137,12 @@ export interface ModelPricing {
      * @memberof ModelPricing
      */
     offPeak?: ModelRate;
+    /**
+     * 
+     * @type {ModelBatchPricing}
+     * @memberof ModelPricing
+     */
+    batch?: ModelBatchPricing;
 }
 
 
@@ -176,6 +189,7 @@ export function ModelPricingFromJSONTyped(json: any, ignoreDiscriminator: boolea
         'peakWindowsUtc': json['peak_windows_utc'] == null ? undefined : ((json['peak_windows_utc'] as Array<any>).map(PeakWindowFromJSON)),
         'peak': json['peak'] == null ? undefined : ModelRateFromJSON(json['peak']),
         'offPeak': json['off_peak'] == null ? undefined : ModelRateFromJSON(json['off_peak']),
+        'batch': json['batch'] == null ? undefined : ModelBatchPricingFromJSON(json['batch']),
     };
 }
 
@@ -206,6 +220,7 @@ export function ModelPricingToJSONTyped(value?: ModelPricing | null, ignoreDiscr
         'peak_windows_utc': value['peakWindowsUtc'] == null ? undefined : ((value['peakWindowsUtc'] as Array<any>).map(PeakWindowToJSON)),
         'peak': ModelRateToJSON(value['peak']),
         'off_peak': ModelRateToJSON(value['offPeak']),
+        'batch': ModelBatchPricingToJSON(value['batch']),
     };
 }
 

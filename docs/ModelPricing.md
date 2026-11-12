@@ -22,6 +22,7 @@ Name | Type
 `peakWindowsUtc` | [Array&lt;PeakWindow&gt;](PeakWindow.md)
 `peak` | [ModelRate](ModelRate.md)
 `offPeak` | [ModelRate](ModelRate.md)
+`batch` | [ModelBatchPricing](ModelBatchPricing.md)
 
 ## Example
 
@@ -46,6 +47,7 @@ const example = {
   "peakWindowsUtc": null,
   "peak": null,
   "offPeak": null,
+  "batch": null,
 } satisfies ModelPricing
 
 console.log(example)

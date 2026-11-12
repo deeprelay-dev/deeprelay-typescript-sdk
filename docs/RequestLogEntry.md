@@ -42,6 +42,11 @@ Name | Type
 `servedModel` | string
 `fallbackReason` | string
 `attempts` | [Array&lt;RequestAttempt&gt;](RequestAttempt.md)
+`source` | string
+`batchId` | string
+`customId` | string
+`rateTier` | string
+`_final` | boolean
 
 ## Example
 
@@ -85,6 +90,11 @@ const example = {
   "servedModel": null,
   "fallbackReason": null,
   "attempts": null,
+  "source": null,
+  "batchId": null,
+  "customId": null,
+  "rateTier": null,
+  "_final": null,
 } satisfies RequestLogEntry
 
 console.log(example)

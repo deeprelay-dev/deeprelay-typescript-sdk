@@ -35,6 +35,7 @@ export * from './InferencePreflight';
 export * from './JSONSchemaFormat';
 export * from './ListDeposits200Response';
 export * from './Model';
+export * from './ModelBatchPricing';
 export * from './ModelList';
 export * from './ModelMetrics';
 export * from './ModelParametersInner';

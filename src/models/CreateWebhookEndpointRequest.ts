@@ -48,7 +48,12 @@ export const CreateWebhookEndpointRequestEventTypesEnum = {
     SubscriptionQuotaThreshold: 'subscription_quota.threshold',
     ApiKeyBudgetThreshold: 'api_key_budget.threshold',
     MemberSpendThreshold: 'member_spend.threshold',
-    PlanRosterModelRemoved: 'plan_roster.model_removed'
+    PlanRosterModelRemoved: 'plan_roster.model_removed',
+    BatchPaused: 'batch.paused',
+    BatchResumed: 'batch.resumed',
+    BatchCompleted: 'batch.completed',
+    BatchExpired: 'batch.expired',
+    BatchCancelled: 'batch.cancelled'
 } as const;
 export type CreateWebhookEndpointRequestEventTypesEnum = typeof CreateWebhookEndpointRequestEventTypesEnum[keyof typeof CreateWebhookEndpointRequestEventTypesEnum];
 
