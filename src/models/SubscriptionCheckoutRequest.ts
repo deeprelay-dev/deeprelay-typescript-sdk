@@ -39,7 +39,7 @@ export interface SubscriptionCheckoutRequest {
      */
     planKey?: string;
     /**
-     * `card` (dollars, card or Link; the default) or `upi` (rupees, UPI AutoPay). On a subscribed organization, the other currency's method switches the existing plan's billing.
+     * `card` (dollars, card or Link; the default), `upi` (rupees, UPI AutoPay) or `deposit` (a deposit for exactly the plan's price, paid with a method that cannot be disputed: Alipay, WeChat Pay, stablecoins, Bancontact, EPS or Pay by Bank. When it lands, the plan is paid from deposited balance and renews from balance). On a subscribed organization, the other currency's method switches the existing plan's billing; `deposit` is for starting a plan.
      * @type {SubscriptionCheckoutRequestMethodEnum}
      * @memberof SubscriptionCheckoutRequest
      */
@@ -52,7 +52,8 @@ export interface SubscriptionCheckoutRequest {
  */
 export const SubscriptionCheckoutRequestMethodEnum = {
     Card: 'card',
-    Upi: 'upi'
+    Upi: 'upi',
+    Deposit: 'deposit'
 } as const;
 export type SubscriptionCheckoutRequestMethodEnum = typeof SubscriptionCheckoutRequestMethodEnum[keyof typeof SubscriptionCheckoutRequestMethodEnum];
 
