@@ -58,7 +58,30 @@ export interface Balance {
      * @memberof Balance
      */
     burnCentsPerHour: number | null;
+    /**
+     * How the organization is billed. `prepaid` is the ordinary account: usage draws on prepaid credit. `invoice` is an account billed monthly in arrears: `balance_cents` is then minus the usage not yet invoiced, and may run below zero down to `credit_limit_cents`. The server always returns this field. It is not listed as required so that a client generated from this document still reads a response from a server that predates it.
+     * @type {BalanceBillingModeEnum}
+     * @memberof Balance
+     */
+    billingMode?: BalanceBillingModeEnum;
+    /**
+     * How far below zero the balance of an account billed by invoice may run, in USD cents. Present only when `billing_mode` is `invoice`.
+     * @type {number}
+     * @memberof Balance
+     */
+    creditLimitCents?: number;
 }
+
+
+/**
+ * @export
+ */
+export const BalanceBillingModeEnum = {
+    Prepaid: 'prepaid',
+    Invoice: 'invoice'
+} as const;
+export type BalanceBillingModeEnum = typeof BalanceBillingModeEnum[keyof typeof BalanceBillingModeEnum];
+
 
 /**
  * Check if a given object implements the Balance interface.
@@ -89,6 +112,8 @@ export function BalanceFromJSONTyped(json: any, ignoreDiscriminator: boolean): B
         'autoPayThresholdCents': json['auto_pay_threshold_cents'],
         'autoPayAmountCents': json['auto_pay_amount_cents'],
         'burnCentsPerHour': json['burn_cents_per_hour'],
+        'billingMode': json['billing_mode'] == null ? undefined : json['billing_mode'],
+        'creditLimitCents': json['credit_limit_cents'] == null ? undefined : json['credit_limit_cents'],
     };
 }
 
@@ -109,6 +134,8 @@ export function BalanceToJSONTyped(value?: Balance | null, ignoreDiscriminator: 
         'auto_pay_threshold_cents': value['autoPayThresholdCents'],
         'auto_pay_amount_cents': value['autoPayAmountCents'],
         'burn_cents_per_hour': value['burnCentsPerHour'],
+        'billing_mode': value['billingMode'],
+        'credit_limit_cents': value['creditLimitCents'],
     };
 }
 

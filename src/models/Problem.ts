@@ -101,6 +101,7 @@ export const ProblemCodeEnum = {
     CreatorCheckUnavailable: 'creator_check_unavailable',
     SwitchRenewalUnpaid: 'switch_renewal_unpaid',
     CheckoutPaused: 'checkout_paused',
+    InvoiceBilledAccount: 'invoice_billed_account',
     InternalError: 'internal_error',
     OperationFailed: 'operation_failed'
 } as const;
